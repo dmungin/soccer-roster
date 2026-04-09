@@ -9,25 +9,34 @@ export const useAppStore = defineStore('app', () => {
   const customFormations = ref<Formation[]>([]);
   const isLoading = ref(false);
   const hasLoaded = ref(false);
+  let loadPromise: Promise<void> | null = null;
 
   // --- Data Loading ---
   async function loadAll() {
-    isLoading.value = true;
-    try {
-      const [teamsData, gamesData, formationsData] = await Promise.all([
-        api.get<{ teams: Team[] }>('/teams'),
-        api.get<{ games: Game[] }>('/games'),
-        api.get<{ formations: Formation[] }>('/formations').catch(() => ({ formations: [] })), // Graceful fallback
-      ]);
-      teams.value = teamsData.teams;
-      games.value = gamesData.games;
-      customFormations.value = formationsData.formations;
-      hasLoaded.value = true;
-    } catch (err) {
-      console.error('Failed to load data:', err);
-    } finally {
-      isLoading.value = false;
-    }
+    if (loadPromise) return loadPromise;
+    
+    loadPromise = (async () => {
+      isLoading.value = true;
+      try {
+        const [teamsData, gamesData, formationsData] = await Promise.all([
+          api.get<{ teams: Team[] }>('/teams'),
+          api.get<{ games: Game[] }>('/games'),
+          api.get<{ formations: Formation[] }>('/formations').catch(() => ({ formations: [] })), // Graceful fallback
+        ]);
+        teams.value = teamsData.teams;
+        games.value = gamesData.games;
+        customFormations.value = formationsData.formations;
+        hasLoaded.value = true;
+      } catch (err) {
+        console.error('Failed to load data:', err);
+        hasLoaded.value = false;
+      } finally {
+        isLoading.value = false;
+        loadPromise = null;
+      }
+    })();
+    
+    return loadPromise;
   }
 
   // --- Team Actions ---
@@ -215,6 +224,14 @@ export const useAppStore = defineStore('app', () => {
     customFormations.value = customFormations.value.filter(f => f.id !== id);
   }
 
+  function reset() {
+    teams.value = [];
+    games.value = [];
+    customFormations.value = [];
+    hasLoaded.value = false;
+    isLoading.value = false;
+  }
+
   return {
     teams,
     games,
@@ -241,6 +258,7 @@ export const useAppStore = defineStore('app', () => {
     customFormations,
     addCustomFormation,
     deleteCustomFormation,
+    reset,
   };
 });
 
