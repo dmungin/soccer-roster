@@ -49,7 +49,7 @@ test.describe('Authentication', () => {
 
   test('setup is blocked after first user created', async ({ page }) => {
     await login(page);
-    await expect(page.getByRole('heading', { name: 'Soccer Roster', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'First Touch', level: 1 })).toBeVisible();
   });
 
   test('login works with valid credentials', async ({ page }) => {
@@ -148,8 +148,8 @@ test.describe('Game CRUD', () => {
     await expect(page.getByText('vs Panthers').first()).toBeVisible();
 
     // Create a lineup
-    await page.fill('input[placeholder*="Lineup Name"]', 'Q1');
-    await page.getByRole('button', { name: 'Add Lineup' }).click();
+    await page.fill('input[placeholder*="e.g. Q1"]', 'Q1');
+    await page.getByRole('button', { name: 'Add' }).click();
 
     // Verify lineup field appears - check for the lineup name input
     const lineupInput = page.locator('input[title="Edit Lineup Name"]');

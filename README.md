@@ -1,4 +1,4 @@
-# ⚽ Soccer Roster
+# ⚽ First Touch
 
 A self-hostable soccer team roster and tactical planning web application. Manage multiple teams, build player rosters, schedule games, and create drag-and-drop lineup formations for each period.
 
