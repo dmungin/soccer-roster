@@ -34,6 +34,12 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: `Invalid number of positions for ${type}. Expected ${expectedSize}.` });
   }
 
+  // Check if formation name already exists to prevent duplicates
+  const existing = db.prepare('SELECT id FROM custom_formations WHERE LOWER(name) = LOWER(?)').get(name);
+  if (existing) {
+    return res.status(400).json({ error: `Formation with name "${name}" already exists.` });
+  }
+
   const id = crypto.randomUUID();
   db.prepare('INSERT INTO custom_formations (id, name, type, positions, created_by) VALUES (?, ?, ?, ?, ?)')
     .run(id, name, type, JSON.stringify(positions), req.user.id);

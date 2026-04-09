@@ -9,7 +9,10 @@
         
         <div class="flex items-center space-x-3 flex-1 min-w-[200px]">
           <label class="text-xs font-bold uppercase text-gray-500 whitespace-nowrap">Name</label>
-          <input v-model="formationName" placeholder="e.g. 4-4-2" class="border border-gray-300 rounded px-3 py-2 outline-none focus:border-blue-500 text-sm font-bold w-full" />
+          <div class="relative w-full">
+            <input v-model="formationName" placeholder="e.g. 4-4-2" :class="['border rounded px-3 py-2 outline-none text-sm font-bold w-full transition', isDuplicateName ? 'border-red-500 focus:border-red-500 bg-red-50 focus:ring-1 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500']" />
+            <p v-if="isDuplicateName" class="text-[10px] text-red-600 font-bold absolute -bottom-4 left-0 truncate">Name already exists!</p>
+          </div>
         </div>
 
         <div class="flex items-center space-x-3 shrink-0">
@@ -29,7 +32,7 @@
          <span v-else class="text-green-600 font-bold text-sm mr-4">
            Ready ({{expectedCount}})
          </span>
-         <button @click="saveFormation" :disabled="!formationName.trim() || positionsObj.length !== expectedCount" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded shadow transition disabled:opacity-50 tracking-wide uppercase text-sm">
+         <button @click="saveFormation" :disabled="!formationName.trim() || isDuplicateName || positionsObj.length !== expectedCount" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded shadow transition disabled:opacity-50 tracking-wide uppercase text-sm">
            Save Formation
          </button>
       </div>
@@ -109,6 +112,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../stores/appState';
 import { ArrowLeft, Trash2 } from 'lucide-vue-next';
+import { FORMATIONS } from '../utils/formations';
 import type { FormationType, PositionDef } from '../types';
 
 const router = useRouter();
@@ -156,6 +160,14 @@ const expectedCount = computed(() => {
   if (formationSize.value === '11v11') return 11;
   if (formationSize.value === '9v9') return 9;
   return 7;
+});
+
+const isDuplicateName = computed(() => {
+  const name = formationName.value.trim().toLowerCase();
+  if (!name) return false;
+  const inDefaults = FORMATIONS.some(f => f.name.toLowerCase() === name);
+  const inCustoms = store.customFormations.some(f => f.name.toLowerCase() === name);
+  return inDefaults || inCustoms;
 });
 
 function onSidebarDragStart(e: DragEvent, posData: { label: string, name: string }) {
@@ -221,7 +233,7 @@ function removePosition(id: string) {
 }
 
 async function saveFormation() {
-  if (!formationName.value.trim() || positionsObj.value.length !== expectedCount.value) return;
+  if (!formationName.value.trim() || isDuplicateName.value || positionsObj.value.length !== expectedCount.value) return;
   
   try {
     const posDefs: PositionDef[] = positionsObj.value.map(p => ({
