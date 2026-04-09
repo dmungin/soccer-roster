@@ -47,12 +47,12 @@
         <div class="mb-5 bg-white p-5 rounded-xl border border-gray-200 shadow-sm print:hidden">
           <label class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 block">Create Lineup</label>
           <div class="flex flex-col gap-3">
-            <input v-model="newLineupName" placeholder="Lineup Name (e.g. Q1, H1)" class="border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm font-medium" />
+            <input v-model="newLineupName" placeholder="Lineup Name (e.g. Q1, H1)" class="border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-medium" />
             <div class="flex gap-2">
-              <select v-model="selectedFormationId" class="border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm bg-white font-medium flex-1 min-w-0">
+              <select v-model="selectedFormationId" class="border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white font-medium flex-1 min-w-0">
                 <option v-for="f in availableFormations" :key="f.id" :value="f.id">{{ f.name }}</option>
               </select>
-              <button @click="createLineup" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold disabled:opacity-50 transition shadow-sm text-sm shrink-0 uppercase tracking-wide" :disabled="!newLineupName.trim()">Add Lineup</button>
+              <button @click="createLineup" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold disabled:opacity-50 transition shadow-sm text-sm shrink-0 uppercase tracking-wide" :disabled="!newLineupName.trim()">Add Lineup</button>
             </div>
              <p v-if="availableFormations.length === 0" class="text-xs text-red-500 mt-1">No formations available for {{ team.matchType }}.</p>
           </div>
@@ -72,7 +72,7 @@
               </div>
               <div class="flex items-center space-x-4">
                 <div class="w-[50px] text-right">
-                  <span class="font-black text-sm" :class="[getPlayPercentage(p.id) > 65 ? 'text-green-600' : getPlayPercentage(p.id) > 30 ? 'text-blue-700' : 'text-orange-500']">{{ getPlayPercentage(p.id) }}%</span>
+                  <span class="font-black text-sm" :class="[getPlayPercentage(p.id) > 65 ? 'text-blue-600' : getPlayPercentage(p.id) > 30 ? 'text-indigo-700' : 'text-orange-500']">{{ getPlayPercentage(p.id) }}%</span>
                 </div>
                 <ChevronDown class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': expandedPlayers.includes(p.id) }" />
               </div>
@@ -83,7 +83,7 @@
               <div v-if="game.lineups.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <div v-for="(l, i) in game.lineups" :key="l.id" class="flex items-center justify-between bg-white px-2 py-1.5 rounded-lg border border-gray-200 shadow-sm text-xs">
                   <span class="font-bold text-gray-600 truncate mr-2 text-[10px]" :title="l.name">{{ i + 1 }}. {{ l.name }}</span>
-                  <span class="font-black px-1.5 py-0.5 rounded text-[9px]" :class="getPlayerPositionLabel(p.id, l) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'">
+                  <span class="font-black px-1.5 py-0.5 rounded text-[9px]" :class="getPlayerPositionLabel(p.id, l) ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400'">
                     {{ getPlayerPositionLabel(p.id, l) || 'Bench' }}
                   </span>
                 </div>
@@ -143,7 +143,7 @@
           <div v-for="(lineup, i) in game.lineups" :key="lineup.id" class="flex flex-col print:break-inside-avoid">
             <div class="flex justify-between items-center px-0.5 mb-1 print:mb-0 print:px-2 print:translate-y-3.5 print:translate-x-0 relative z-10 print:h-1">
               <div class="flex items-center">
-                <input v-model="lineup.name" class="font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-green-500 outline-none w-[100px] transition text-sm selection:bg-green-200 print:text-black print:border-none print:w-auto print:text-[6px] print:p-0 print:h-auto print:leading-none" title="Edit Lineup Name" />
+                <input v-model="lineup.name" class="font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-[100px] transition text-sm selection:bg-blue-200 print:text-black print:border-none print:w-auto print:text-[6px] print:p-0 print:h-auto print:leading-none" title="Edit Lineup Name" />
               </div>
               <div class="flex space-x-0.5 opacity-50 focus-within:opacity-100 hover:opacity-100 transition-opacity print:hidden">
                 <button @click="store.copyLineupInGame(game.id, lineup.id)" class="text-blue-600 hover:bg-blue-100 p-1 rounded transition" title="Duplicate Field Grid"><Copy class="w-3.5 h-3.5"/></button>
@@ -162,7 +162,7 @@
                      class="flex flex-col items-center group cursor-grab active:cursor-grabbing print:flex-row print:items-center print:inline-flex"
                      draggable="true" @dragstart="onDragStart($event, p)">
                    <!-- Screen: Badge -->
-                   <div class="bg-gray-100 text-gray-500 rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] shadow-sm print:hidden ring-1 ring-black/5 group-hover:ring-green-400 group-hover:bg-green-50 group-hover:text-green-700 transition">
+                   <div class="bg-gray-100 text-gray-500 rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] shadow-sm print:hidden ring-1 ring-black/5 group-hover:ring-blue-400 group-hover:bg-blue-50 group-hover:text-blue-700 transition">
                      BE
                    </div>
                    <!-- Text -->

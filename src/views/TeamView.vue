@@ -34,7 +34,7 @@
              
              <div>
                <label class="text-[11px] font-bold uppercase text-gray-500 mb-1.5 block">Team Name</label>
-               <input :value="team.name" @change="updateName(($event.target as HTMLInputElement).value)" class="border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-400 w-full text-sm font-medium" />
+               <input :value="team.name" @change="updateName(($event.target as HTMLInputElement).value)" class="border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400 w-full text-sm font-medium" />
              </div>
 
              <div>
@@ -54,26 +54,26 @@
                   <button @click="showCustomUrl = !showCustomUrl" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition text-[9px] font-black text-gray-800 uppercase', isCustomIcon(team.icon) || showCustomUrl ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" title="Custom URL">URL</button>
                  </div>
                  <div v-if="showCustomUrl || isCustomIcon(team.icon)" class="flex gap-2">
-                   <input v-model="customUrlInput" placeholder="Image URL (http://...)" class="border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-green-500 text-xs flex-1" />
-                   <button @click="saveCustomIcon" :disabled="!customUrlInput.trim()" class="bg-green-600 disabled:opacity-50 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm uppercase">Save</button>
+                   <input v-model="customUrlInput" placeholder="Image URL (http://...)" class="border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500 text-xs flex-1" />
+                   <button @click="saveCustomIcon" :disabled="!customUrlInput.trim()" class="bg-blue-600 disabled:opacity-50 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm uppercase">Save</button>
                  </div>
                </div>
              </div>
           </div>
 
-          <div class="bg-green-50 p-5 rounded-lg border border-green-100 h-max">
-            <h3 class="font-bold text-green-900 mb-2">Quick Add Players</h3>
-            <p class="text-xs text-green-700 mb-4 leading-relaxed">Paste a list of player names below, one per line. They will be appended to the current roster.</p>
+          <div class="bg-blue-50 p-5 rounded-lg border border-blue-100 h-max">
+            <h3 class="font-bold text-blue-900 mb-2">Quick Add Players</h3>
+            <p class="text-xs text-blue-700 mb-4 leading-relaxed">Paste a list of player names below, one per line. They will be appended to the current roster.</p>
             <textarea 
               v-model="bulkNames" 
               rows="6" 
-              class="w-full border border-green-200 p-3 rounded-md text-sm outline-none focus:ring-2 focus:ring-green-400 bg-white" 
+              class="w-full border border-blue-200 p-3 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white" 
               placeholder="Lionel Messi&#10;Cristiano Ronaldo&#10;Neymar Jr..."
             ></textarea>
             <button 
               @click="addPlayers" 
               :disabled="!bulkNames.trim()"
-              class="mt-3 w-full bg-green-600 text-white px-4 py-2.5 rounded-md font-medium hover:bg-green-700 transition disabled:opacity-50 shadow-sm"
+              class="mt-3 w-full bg-blue-600 text-white px-4 py-2.5 rounded-md font-medium hover:bg-blue-700 transition disabled:opacity-50 shadow-sm"
             >
               Add to Team
             </button>
@@ -90,7 +90,7 @@
             <li 
               v-for="player in team.players" 
               :key="player.id" 
-              class="flex justify-between items-center border border-gray-200 p-3 rounded-md group cursor-default shadow-sm hover:border-green-400 hover:shadow-md transition bg-white"
+              class="flex justify-between items-center border border-gray-200 p-3 rounded-md group cursor-default shadow-sm hover:border-blue-400 hover:shadow-md transition bg-white"
             >
               <span class="font-medium text-gray-700">{{ player.name }}</span>
               <button 

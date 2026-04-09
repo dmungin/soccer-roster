@@ -2,7 +2,7 @@
   <div class="p-4 sm:p-8 max-w-6xl mx-auto print-hide w-full overflow-y-auto">
     <!-- Header Splash -->
     <div class="flex flex-col items-center justify-center py-8 mb-6 mt-4">
-      <svg class="w-16 h-16 text-green-600 mb-4 stroke-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="w-16 h-16 text-blue-600 mb-4 stroke-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
         <line x1="12" y1="3" x2="12" y2="21"/>
         <circle cx="12" cy="12" r="3"/>
@@ -16,11 +16,11 @@
       
       <!-- Teams -->
       <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 block">
-        <h2 class="text-2xl font-bold mb-4 flex items-center"><Users class="mr-2 w-6 h-6 text-green-600" /> Teams</h2>
+        <h2 class="text-2xl font-bold mb-4 flex items-center"><Users class="mr-2 w-6 h-6 text-blue-600" /> Teams</h2>
         
         <div class="bg-gray-50 border border-gray-200 p-5 rounded-lg mb-6 space-y-4 shadow-inner">
           <label class="text-sm font-extrabold text-gray-800 uppercase tracking-wider block">Create New Team</label>
-          <input v-model="newTeamName" placeholder="Team Name..." class="border border-gray-300 rounded px-3 py-2 w-full outline-none focus:border-green-500 focus:ring-1 focus:ring-green-400" />
+          <input v-model="newTeamName" placeholder="Team Name..." class="border border-gray-300 rounded px-3 py-2 w-full outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400" />
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -38,7 +38,7 @@
                   </button>
                   <button @click="selectedIcon = 'custom'" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition text-[9px] font-black text-gray-800 uppercase', selectedIcon === 'custom' ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" title="Custom URL">URL</button>
                  </div>
-                 <input v-if="selectedIcon === 'custom'" v-model="customIconUrl" placeholder="Image URL (http://...)" class="border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-400 text-xs w-full" />
+                 <input v-if="selectedIcon === 'custom'" v-model="customIconUrl" placeholder="Image URL (http://...)" class="border border-gray-300 rounded px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400 text-xs w-full" />
                </div>
             </div>
           </div>
@@ -46,7 +46,7 @@
           <div class="grid grid-cols-2 gap-4">
              <div class="flex flex-col">
                <label class="text-[11px] font-bold uppercase text-gray-500 mb-1">Match Type</label>
-               <select v-model="selectedMatchType" @change="onMatchTypeChange" class="border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-green-500">
+               <select v-model="selectedMatchType" @change="onMatchTypeChange" class="border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-blue-500">
                   <option value="11v11">11 v 11</option>
                   <option value="9v9">9 v 9</option>
                   <option value="7v7">7 v 7</option>
@@ -54,13 +54,13 @@
              </div>
              <div class="flex flex-col">
                <label class="text-[11px] font-bold uppercase text-gray-500 mb-1">Default Formation</label>
-               <select v-model="selectedDefaultFormationId" class="border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-green-500">
+               <select v-model="selectedDefaultFormationId" class="border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-blue-500">
                   <option v-for="f in getFormationsForType(selectedMatchType)" :key="f.id" :value="f.id">{{ f.name }}</option>
                </select>
              </div>
           </div>
           
-          <button @click="createTeam" :disabled="!newTeamName.trim()" class="bg-green-600 w-full text-white px-4 py-2 mt-2 rounded font-bold hover:bg-green-700 disabled:opacity-50 transition shadow-sm text-sm">Create Team</button>
+          <button @click="createTeam" :disabled="!newTeamName.trim()" class="bg-blue-600 w-full text-white px-4 py-2 mt-2 rounded font-bold hover:bg-blue-700 disabled:opacity-50 transition shadow-sm text-sm">Create Team</button>
         </div>
 
         <ul class="space-y-2">
@@ -86,18 +86,18 @@
 
       <!-- Games -->
       <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 block">
-        <h2 class="text-2xl font-bold mb-4 flex items-center"><Calendar class="mr-2 w-6 h-6 text-green-600" /> Scheduled Games</h2>
+        <h2 class="text-2xl font-bold mb-4 flex items-center"><Calendar class="mr-2 w-6 h-6 text-blue-600" /> Scheduled Games</h2>
         <div class="flex flex-col space-y-3 mb-6 bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-inner">
           <label class="text-sm font-extrabold text-gray-800 uppercase tracking-wider block">Create New Game</label>
-          <input v-model="newGameName" placeholder="Game Name/Opponent (e.g. vs Milford)" class="border border-gray-300 rounded px-3 py-2 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-400" />
+          <input v-model="newGameName" placeholder="Game Name/Opponent (e.g. vs Milford)" class="border border-gray-300 rounded px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400" />
           <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-            <input v-model="newGameDate" type="date" class="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-green-500" />
-            <select v-model="newGameTeamId" class="border border-gray-300 rounded px-3 py-2 flex-1 text-sm outline-none focus:border-green-500 bg-white">
+            <input v-model="newGameDate" type="date" class="border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            <select v-model="newGameTeamId" class="border border-gray-300 rounded px-3 py-2 flex-1 text-sm outline-none focus:border-blue-500 bg-white">
               <option disabled value="">Select Home Team...</option>
               <option v-for="team in store.teams" :key="team.id" :value="team.id">{{ team.name }} ({{ team.matchType }})</option>
             </select>
           </div>
-          <button @click="createGame" class="bg-green-600 text-white w-full px-4 py-2 rounded font-bold hover:bg-green-700 disabled:opacity-50 transition text-sm shadow-sm" :disabled="!newGameTeamId || !newGameName.trim()">Schedule Game</button>
+          <button @click="createGame" class="bg-blue-600 text-white w-full px-4 py-2 rounded font-bold hover:bg-blue-700 disabled:opacity-50 transition text-sm shadow-sm" :disabled="!newGameTeamId || !newGameName.trim()">Schedule Game</button>
         </div>
         
         <ul class="space-y-2">
@@ -163,13 +163,13 @@ function onMatchTypeChange() {
   }
 }
 
-function createTeam() {
+async function createTeam() {
   if (newTeamName.value.trim()) {
     const finalIcon = selectedIcon.value === 'custom' && customIconUrl.value.trim() 
       ? customIconUrl.value.trim() 
       : (selectedIcon.value === 'custom' ? 'Shield' : selectedIcon.value);
 
-    store.addTeam(newTeamName.value.trim(), selectedColor.value, finalIcon, selectedMatchType.value, selectedDefaultFormationId.value);
+    await store.addTeam(newTeamName.value.trim(), selectedColor.value, finalIcon, selectedMatchType.value, selectedDefaultFormationId.value);
     
     newTeamName.value = '';
     customIconUrl.value = '';
@@ -180,9 +180,9 @@ function createTeam() {
   }
 }
 
-function createGame() {
+async function createGame() {
   if (newGameName.value.trim() && newGameTeamId.value) {
-    store.addGame(newGameName.value.trim(), newGameTeamId.value, newGameDate.value);
+    await store.addGame(newGameName.value.trim(), newGameTeamId.value, newGameDate.value);
     newGameName.value = '';
     newGameDate.value = '';
   }

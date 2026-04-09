@@ -1,10 +1,10 @@
-# Multi-stage logic for smaller final image
+# Multi-stage build for smaller final image
 # Stage 1: Build the Vue application
 FROM node:22-alpine AS build
 
 WORKDIR /app
 
-# Copy package.json and install dependencies
+# Copy package.json and install all dependencies (including dev)
 COPY package*.json ./
 RUN npm install
 
@@ -17,16 +17,28 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Only install production dependencies for the Express server
+# Install production dependencies only (Express, better-sqlite3, bcrypt, etc.)
 COPY package*.json ./
 RUN npm install --omit=dev
 
-# Copy the server file and the built static files
+# Copy the server files and the built static files
 COPY server.js ./
+COPY server/ ./server/
 COPY --from=build /app/dist ./dist
+
+# Create data directory for SQLite
+RUN mkdir -p /data
+
+# Environment
+ENV PORT=3000
+ENV DB_PATH=/data/soccer-roster.db
+ENV NODE_ENV=production
 
 # Expose the server port
 EXPOSE 3000
+
+# Persistent data volume
+VOLUME /data
 
 # Start the server
 CMD ["npm", "start"]

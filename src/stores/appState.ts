@@ -1,68 +1,73 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref } from 'vue';
-import type { Team, Game, Lineup, Formation, FormationType, Player } from '../types';
+import type { Team, Game, Formation } from '../types';
+import { api } from '../services/api';
 
 export const useAppStore = defineStore('app', () => {
   const teams = ref<Team[]>([]);
   const games = ref<Game[]>([]);
+  const isLoading = ref(false);
 
-  // Team Actions
-  function addTeam(name: string, color: string, icon: string, matchType: FormationType, defaultFormationId: string) {
-    const newTeam: Team = {
-      id: crypto.randomUUID(),
-      name, color, icon, matchType, defaultFormationId,
-      players: []
-    };
-    teams.value.push(newTeam);
-    return newTeam;
+  // --- Data Loading ---
+  async function loadAll() {
+    isLoading.value = true;
+    try {
+      const [teamsData, gamesData] = await Promise.all([
+        api.get<{ teams: Team[] }>('/teams'),
+        api.get<{ games: Game[] }>('/games'),
+      ]);
+      teams.value = teamsData.teams;
+      games.value = gamesData.games;
+    } catch (err) {
+      console.error('Failed to load data:', err);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  function deleteTeam(id: string) {
+  // --- Team Actions ---
+  async function addTeam(name: string, color: string, icon: string, matchType: string, defaultFormationId: string) {
+    const data = await api.post<{ team: Team }>('/teams', { name, color, icon, matchType, defaultFormationId });
+    teams.value.unshift(data.team);
+    return data.team;
+  }
+
+  async function deleteTeam(id: string) {
+    await api.delete(`/teams/${id}`);
     teams.value = teams.value.filter(t => t.id !== id);
-    // Cascade delete games associated with this team
     games.value = games.value.filter(g => g.teamId !== id);
   }
 
-  function updateTeamIcon(teamId: string, icon: string) {
-    const team = teams.value.find(t => t.id === teamId);
-    if (team) {
-      team.icon = icon;
-    }
+  async function updateTeamIcon(teamId: string, icon: string) {
+    const data = await api.put<{ team: Team }>(`/teams/${teamId}`, { icon });
+    const idx = teams.value.findIndex(t => t.id === teamId);
+    if (idx !== -1) teams.value[idx] = data.team;
   }
 
-  function updateTeamName(teamId: string, name: string) {
-    const team = teams.value.find(t => t.id === teamId);
-    if (team) {
-      team.name = name;
-    }
+  async function updateTeamName(teamId: string, name: string) {
+    const data = await api.put<{ team: Team }>(`/teams/${teamId}`, { name });
+    const idx = teams.value.findIndex(t => t.id === teamId);
+    if (idx !== -1) teams.value[idx] = data.team;
   }
 
-  function updateTeamColor(teamId: string, color: string) {
-    const team = teams.value.find(t => t.id === teamId);
-    if (team) {
-      team.color = color;
-    }
+  async function updateTeamColor(teamId: string, color: string) {
+    const data = await api.put<{ team: Team }>(`/teams/${teamId}`, { color });
+    const idx = teams.value.findIndex(t => t.id === teamId);
+    if (idx !== -1) teams.value[idx] = data.team;
   }
 
-  function appendPlayersToTeam(teamId: string, names: string[]) {
-    const team = teams.value.find(t => t.id === teamId);
-    if (!team) return;
-    names.forEach(name => {
-      if (name.trim()) {
-        team.players.push({
-          id: crypto.randomUUID(),
-          name: name.trim()
-        });
-      }
-    });
+  async function appendPlayersToTeam(teamId: string, names: string[]) {
+    const data = await api.post<{ team: Team }>(`/teams/${teamId}/players`, { names });
+    const idx = teams.value.findIndex(t => t.id === teamId);
+    if (idx !== -1) teams.value[idx] = data.team;
   }
 
-  function removePlayerFromTeam(teamId: string, playerId: string) {
-    const team = teams.value.find(t => t.id === teamId);
-    if (!team) return;
-    team.players = team.players.filter(p => p.id !== playerId);
+  async function removePlayerFromTeam(teamId: string, playerId: string) {
+    const data = await api.delete<{ team: Team }>(`/teams/${teamId}/players/${playerId}`);
+    const idx = teams.value.findIndex(t => t.id === teamId);
+    if (idx !== -1) teams.value[idx] = data.team;
 
-    // Remote player from all associated game lineups
+    // Update any game lineups that reference this player
     games.value.filter(g => g.teamId === teamId).forEach(game => {
       game.lineups.forEach(lineup => {
         lineup.positions.forEach(pos => {
@@ -76,14 +81,15 @@ export const useAppStore = defineStore('app', () => {
     return teams.value.find(t => t.id === teamId);
   }
 
-  // Game Actions
-  function addGame(name: string, teamId: string, date?: string) {
-    const newGame: Game = { id: crypto.randomUUID(), name, date, teamId, lineups: [] };
-    games.value.push(newGame);
-    return newGame;
+  // --- Game Actions ---
+  async function addGame(name: string, teamId: string, date?: string) {
+    const data = await api.post<{ game: Game }>('/games', { name, teamId, date });
+    games.value.unshift(data.game);
+    return data.game;
   }
 
-  function deleteGame(id: string) {
+  async function deleteGame(id: string) {
+    await api.delete(`/games/${id}`);
     games.value = games.value.filter(g => g.id !== id);
   }
 
@@ -91,45 +97,41 @@ export const useAppStore = defineStore('app', () => {
     return games.value.find(g => g.id === gameId);
   }
 
-  // Lineup Actions
-  function addLineupToGame(gameId: string, name: string, formation: Formation) {
-    const game = getGame(gameId);
-    if (!game) return;
-
-    const newLineup: Lineup = {
+  // --- Lineup Actions ---
+  async function addLineupToGame(gameId: string, name: string, formation: Formation) {
+    const positions = formation.positions.map(p => ({
       id: crypto.randomUUID(),
+      label: p.label,
+      x: p.x,
+      y: p.y,
+      playerId: null,
+    }));
+
+    const data = await api.post<{ game: Game }>(`/games/${gameId}/lineups`, {
       name,
       formationId: formation.id,
-      positions: formation.positions.map(p => ({ ...p, id: crypto.randomUUID(), playerId: null }))
-    };
-    game.lineups.push(newLineup);
-    return newLineup;
+      positions,
+    });
+
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game.lineups[data.game.lineups.length - 1];
   }
 
-  function copyLineupInGame(gameId: string, lineupId: string) {
-    const game = getGame(gameId);
-    if (!game) return;
-
-    const original = game.lineups.find(l => l.id === lineupId);
-    if (!original) return;
-
-    const newLineup: Lineup = {
-      id: crypto.randomUUID(),
-      name: original.name + ' (Copy)',
-      formationId: original.formationId,
-      positions: original.positions.map(p => ({ ...p, id: crypto.randomUUID() })) // Copy cleanly
-    };
-    game.lineups.push(newLineup);
-    return newLineup;
+  async function copyLineupInGame(gameId: string, lineupId: string) {
+    const data = await api.post<{ game: Game }>(`/games/${gameId}/lineups/${lineupId}/copy`);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game.lineups[data.game.lineups.length - 1];
   }
 
-  function deleteLineup(gameId: string, lineupId: string) {
-    const game = getGame(gameId);
-    if (!game) return;
-    game.lineups = game.lineups.filter(l => l.id !== lineupId);
+  async function deleteLineup(gameId: string, lineupId: string) {
+    const data = await api.delete<{ game: Game }>(`/games/${gameId}/lineups/${lineupId}`);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
   }
 
-  function assignPlayerToPosition(gameId: string, lineupId: string, positionId: string, playerId: string | null) {
+  async function assignPlayerToPosition(gameId: string, lineupId: string, positionId: string, playerId: string | null) {
     const game = getGame(gameId);
     if (!game) return;
     const lineup = game.lineups.find(l => l.id === lineupId);
@@ -139,26 +141,33 @@ export const useAppStore = defineStore('app', () => {
     if (!targetPos) return;
 
     if (playerId) {
-      // Find where the dragged player is coming from (if they are already on the field)
       const sourcePos = lineup.positions.find(p => p.playerId === playerId && p.id !== positionId);
       const displacedPlayerId = targetPos.playerId;
 
       if (sourcePos) {
         if (displacedPlayerId) {
-          // Two-way Swap: The player being overwritten goes to the origin position
           sourcePos.playerId = displacedPlayerId;
         } else {
-          // One-way Move: Nobody was replaced, clear origin
           sourcePos.playerId = null;
         }
       }
     }
 
-    // Assign the new player to exactly where they were dropped
     targetPos.playerId = playerId;
+
+    // Persist the full lineup positions state
+    await api.put(`/games/${gameId}/lineups/${lineupId}`, {
+      positions: lineup.positions.map(p => ({
+        id: p.id,
+        label: p.label,
+        x: p.x,
+        y: p.y,
+        playerId: p.playerId,
+      })),
+    });
   }
 
-  function updatePositionLocation(gameId: string, lineupId: string, positionId: string, x: number, y: number) {
+  async function updatePositionLocation(gameId: string, lineupId: string, positionId: string, x: number, y: number) {
     const game = getGame(gameId);
     if (!game) return;
     const lineup = game.lineups.find(l => l.id === lineupId);
@@ -168,11 +177,32 @@ export const useAppStore = defineStore('app', () => {
       pos.x = x;
       pos.y = y;
     }
+
+    // Persist
+    await api.put(`/games/${gameId}/lineups/${lineupId}`, {
+      positions: lineup.positions.map(p => ({
+        id: p.id,
+        label: p.label,
+        x: p.x,
+        y: p.y,
+        playerId: p.playerId,
+      })),
+    });
+  }
+
+  async function updateLineupName(gameId: string, lineupId: string, name: string) {
+    await api.put(`/games/${gameId}/lineups/${lineupId}`, { name });
+    const game = getGame(gameId);
+    if (!game) return;
+    const lineup = game.lineups.find(l => l.id === lineupId);
+    if (lineup) lineup.name = name;
   }
 
   return {
     teams,
     games,
+    isLoading,
+    loadAll,
     addTeam,
     updateTeamIcon,
     updateTeamName,
@@ -189,9 +219,8 @@ export const useAppStore = defineStore('app', () => {
     deleteLineup,
     assignPlayerToPosition,
     updatePositionLocation,
+    updateLineupName,
   };
-}, {
-  persist: true
 });
 
 if (import.meta.hot) {
