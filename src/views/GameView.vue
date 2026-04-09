@@ -59,7 +59,7 @@
         </div>
 
         <div v-if="teamOtherGames.length > 0" class="mb-5 bg-white p-5 rounded-xl border border-gray-200 shadow-sm print:hidden">
-          <label class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 block">Copy From Past Game</label>
+          <label class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 block">Copy From Another Game</label>
           <div class="flex gap-2">
             <select v-model="selectedGameToCopyId" class="border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white font-medium flex-1 min-w-0">
               <option disabled value="">Select previous game...</option>
