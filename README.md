@@ -2,7 +2,6 @@
 
 A self-hostable soccer team roster and tactical planning web application. Manage multiple teams, build player rosters, schedule games, and create drag-and-drop lineup formations for each period.
 
-![CI](https://github.com/dmungin/soccer-roster/actions/workflows/ci.yml/badge.svg)
 ![CD](https://github.com/dmungin/soccer-roster/actions/workflows/cd.yml/badge.svg)
 
 ---
@@ -35,7 +34,6 @@ A self-hostable soccer team roster and tactical planning web application. Manage
 | Database | SQLite (`better-sqlite3`) |
 | Auth | JWT + bcrypt + httpOnly cookies |
 | Testing | Playwright (E2E) |
-| Container | Docker (multi-stage, Alpine) |
 
 ---
 
@@ -160,7 +158,7 @@ This command:
 1. Deletes the previous test database (`data/e2e-test.db`)
 2. Builds the Vue frontend
 3. Starts the Express server on port 3000
-4. Runs all 17 Playwright tests in sequence
+4. Runs Playwright tests in sequence
 5. Shuts the server down
 
 ### Re-run without rebuilding
@@ -171,24 +169,12 @@ npm run test:e2e
 
 > Requires the server to already be running, or Playwright will start one automatically (with `reuseExistingServer` in non-CI mode).
 
-### Test coverage
-
-| Suite | Tests |
-|-------|-------|
-| Authentication | 7 — setup, login, logout, invalid credentials, redirect |
-| Team CRUD | 4 — create, add players, remove player, delete |
-| Game CRUD | 4 — create game, add lineup, data persistence, delete |
-| Access Control | 2 — API returns 401 for unauthenticated requests |
-| **Total** | **17** |
-
----
-
 ## CI/CD
 
 | Workflow | Trigger | Action |
 |----------|---------|--------|
-| **CI** | Pull request → `master` | Runs all 17 Playwright E2E tests |
-| **CD** | Push/merge → `master` | Builds and pushes `dmungin/soccer-roster:latest` to Docker Hub |
+| **CI** | Pull request → `master` | Runs Playwright E2E tests |
+| **CD** | Push/merge → `master` | Builds and pushes to Docker Hub |
 
 ### Required GitHub Secrets
 
@@ -196,7 +182,7 @@ Set these in **Settings → Secrets and variables → Actions**:
 
 | Secret | Description |
 |--------|-------------|
-| `DOCKERHUB_USERNAME` | Your Docker Hub username (`dmungin`) |
+| `DOCKERHUB_USERNAME` | Your Docker Hub username |
 | `DOCKERHUB_TOKEN` | Docker Hub [access token](https://hub.docker.com/settings/security) |
 
 ---
