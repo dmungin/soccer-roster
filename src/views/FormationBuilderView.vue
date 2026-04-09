@@ -61,7 +61,7 @@
 
       <!-- Field Layout Area -->
       <div class="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-y-auto relative bg-gradient-to-br from-gray-100 to-gray-200">
-         <div class="w-full max-w-[500px] aspect-[3/4] relative bg-[#2a8b3e] rounded-xl border-[6px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] overflow-hidden"
+         <div ref="fieldContainerRef" class="w-full max-w-[500px] aspect-[3/4] relative bg-[#2a8b3e] rounded-xl border-[6px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] overflow-hidden"
               @dragover.prevent="onFieldDragOver"
               @drop="onFieldDrop">
             <!-- Grass background strips -->
@@ -150,6 +150,7 @@ const POSITIONS = {
 const formationName = ref('');
 const formationSize = ref<FormationType>('11v11');
 const positionsObj = ref<{id: string, label: string, name: string, x: number, y: number}[]>([]);
+const fieldContainerRef = ref<HTMLElement | null>(null);
 
 const expectedCount = computed(() => {
   if (formationSize.value === '11v11') return 11;
@@ -180,7 +181,7 @@ function onNodeDragStart(e: DragEvent, p: { id: string }) {
 
 function onFieldDragOver(e: DragEvent) {
   if (e.dataTransfer) {
-    e.dataTransfer.dropEffect = 'copy';
+    e.dataTransfer.dropEffect = e.dataTransfer.effectAllowed === 'move' ? 'move' : 'copy';
   }
 }
 
@@ -190,8 +191,10 @@ function onFieldDrop(e: DragEvent) {
     if (!dataStr) return;
     const data = JSON.parse(dataStr);
     
-    // Calculate percentages
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    // Calculate percentages relative to the field container
+    const container = fieldContainerRef.value;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
     const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
     const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
     
