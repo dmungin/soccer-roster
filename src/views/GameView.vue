@@ -42,30 +42,35 @@
            <p class="text-[10px] font-bold text-gray-600 mt-0.5 print:text-[6px]" v-if="game.date">{{ formatDate(game.date) }}</p>
         </div>
         
-        <div class="mb-5 bg-white p-5 border border-gray-200 shadow-sm print:hidden rounded-none divide-y divide-gray-100">
-          <div class="pb-5">
-            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Create Lineup</label>
-            <div class="flex flex-col gap-3">
-              <input v-model="newLineupName" placeholder="Lineup Name (e.g. Q1, H1)" class="border border-gray-300 rounded-none px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-medium" />
-              <div class="flex gap-2">
-                <select v-model="selectedFormationId" class="border border-gray-300 rounded-none px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white font-medium flex-1 min-w-0">
-                  <option v-for="f in availableFormations" :key="f.id" :value="f.id">{{ f.name }}</option>
-                </select>
-                <button @click="createLineup" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-none font-bold disabled:opacity-50 transition shadow-sm text-sm shrink-0 uppercase tracking-wide" :disabled="!newLineupName.trim()">Add Lineup</button>
-              </div>
-               <p v-if="availableFormations.length === 0" class="text-xs text-red-500 mt-1">No formations available.</p>
+        <div class="mb-4 bg-white p-3 border border-gray-200 shadow-sm print:hidden rounded-none space-y-3">
+          <!-- Create Lineup Row -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between px-0.5">
+              <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">New Lineup</label>
+            </div>
+            <div class="flex gap-1.5">
+              <input v-model="newLineupName" placeholder="e.g. Q1" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs font-bold w-20 shrink-0" />
+              <select v-model="selectedFormationId" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs bg-white font-bold flex-1 min-w-0">
+                <option v-for="f in availableFormations" :key="f.id" :value="f.id">{{ f.name }}</option>
+              </select>
+              <button @click="createLineup" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-none font-black disabled:opacity-50 transition text-[10px] uppercase tracking-wider shadow-sm" :disabled="!newLineupName.trim()">
+                Add
+              </button>
             </div>
           </div>
 
-          <div v-if="teamOtherGames.length > 0" class="pt-5">
-            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Copy From Another Game</label>
-            <div class="flex gap-2">
-              <select v-model="selectedGameToCopyId" class="border border-gray-300 rounded-none px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white font-medium flex-1 min-w-0">
-                <option disabled value="">Select previous game...</option>
+          <!-- Copy Lineup Row -->
+          <div v-if="teamOtherGames.length > 0" class="pt-2 border-t border-gray-100 space-y-1.5">
+            <div class="flex items-center justify-between px-0.5">
+              <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Quick Import</label>
+            </div>
+            <div class="flex gap-1.5">
+              <select v-model="selectedGameToCopyId" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs bg-white font-bold flex-1 min-w-0">
+                <option disabled value="">Select prior game...</option>
                 <option v-for="g in teamOtherGames" :key="g.id" :value="g.id">{{ g.name }}</option>
               </select>
-              <button @click="copyFromGame" class="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-4 py-2 rounded-none font-bold disabled:opacity-50 transition shadow-sm text-sm shrink-0 uppercase tracking-wide" :disabled="!selectedGameToCopyId">
-                 Copy All
+              <button @click="copyFromGame" class="bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-300 px-3 py-1.5 rounded-none font-black disabled:opacity-50 transition text-[10px] uppercase tracking-wider shadow-sm" :disabled="!selectedGameToCopyId">
+                 Copy
               </button>
             </div>
           </div>

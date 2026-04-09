@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full overflow-y-auto bg-gray-50">
+  <div class="w-full bg-gray-50">
     <div class="max-w-4xl mx-auto p-6 sm:p-8">
 
       <!-- Header -->

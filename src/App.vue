@@ -36,7 +36,7 @@
     </header>
 
     <!-- Main Content routing -->
-    <main class="flex-1 flex min-h-0 min-w-0 print:h-auto print:block relative overflow-hidden print:overflow-visible">
+    <main class="flex-1 flex flex-col min-h-0 min-w-0 print:h-auto print:block relative overflow-y-auto print:overflow-visible bg-gray-50">
       <router-view />
     </main>
   </div>

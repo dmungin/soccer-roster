@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 sm:p-8 max-w-6xl mx-auto print-hide w-full overflow-y-auto">
+  <div class="p-4 sm:p-8 max-w-6xl mx-auto print-hide w-full">
     <!-- Header Splash -->
     <div class="flex flex-col items-center justify-center py-8 mb-6 mt-4">
       <svg class="w-16 h-16 text-blue-600 mb-4 stroke-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
