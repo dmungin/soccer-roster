@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '../services/api';
+import { useAppStore } from './appState';
 
 interface AuthUser {
   id: string;
@@ -38,6 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = data.user;
     } catch {
       user.value = null;
+      useAppStore().reset();
     } finally {
       isLoading.value = false;
     }
@@ -53,12 +55,18 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(username: string, password: string) {
     const data = await api.post<{ user: AuthUser }>('/auth/login', { username, password });
     user.value = data.user;
+    // ensure next navigation triggers a fresh load
+    useAppStore().reset();
     return data.user;
   }
 
   async function logout() {
-    await api.post('/auth/logout');
-    user.value = null;
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      user.value = null;
+      useAppStore().reset();
+    }
   }
 
   async function inviteUser(username: string, password: string) {

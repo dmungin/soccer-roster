@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.e2e.ts',
+  workers: 1,
   fullyParallel: false, // Tests depend on sequential auth state
   reporter: 'list',
   timeout: 30000,
@@ -19,7 +20,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && DB_PATH=./data/e2e-test.db node server.js',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 30000,
     env: {
       PORT: '3000',

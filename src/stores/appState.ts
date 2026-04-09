@@ -1,28 +1,42 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref } from 'vue';
-import type { Team, Game, Formation } from '../types';
+import type { Team, Game, Formation, FormationType, PositionDef } from '../types';
 import { api } from '../services/api';
 
 export const useAppStore = defineStore('app', () => {
   const teams = ref<Team[]>([]);
   const games = ref<Game[]>([]);
+  const customFormations = ref<Formation[]>([]);
   const isLoading = ref(false);
+  const hasLoaded = ref(false);
+  let loadPromise: Promise<void> | null = null;
 
   // --- Data Loading ---
   async function loadAll() {
-    isLoading.value = true;
-    try {
-      const [teamsData, gamesData] = await Promise.all([
-        api.get<{ teams: Team[] }>('/teams'),
-        api.get<{ games: Game[] }>('/games'),
-      ]);
-      teams.value = teamsData.teams;
-      games.value = gamesData.games;
-    } catch (err) {
-      console.error('Failed to load data:', err);
-    } finally {
-      isLoading.value = false;
-    }
+    if (loadPromise) return loadPromise;
+    
+    loadPromise = (async () => {
+      isLoading.value = true;
+      try {
+        const [teamsData, gamesData, formationsData] = await Promise.all([
+          api.get<{ teams: Team[] }>('/teams'),
+          api.get<{ games: Game[] }>('/games'),
+          api.get<{ formations: Formation[] }>('/formations').catch(() => ({ formations: [] })), // Graceful fallback
+        ]);
+        teams.value = teamsData.teams;
+        games.value = gamesData.games;
+        customFormations.value = formationsData.formations;
+        hasLoaded.value = true;
+      } catch (err) {
+        console.error('Failed to load data:', err);
+        hasLoaded.value = false;
+      } finally {
+        isLoading.value = false;
+        loadPromise = null;
+      }
+    })();
+    
+    return loadPromise;
   }
 
   // --- Team Actions ---
@@ -204,10 +218,31 @@ export const useAppStore = defineStore('app', () => {
     if (lineup) lineup.name = name;
   }
 
+  // --- Formation Actions ---
+  async function addCustomFormation(name: string, type: FormationType, positions: PositionDef[]) {
+    const data = await api.post<{ formation: Formation }>('/formations', { name, type, positions });
+    customFormations.value.unshift(data.formation);
+    return data.formation;
+  }
+
+  async function deleteCustomFormation(id: string) {
+    await api.delete(`/formations/${id}`);
+    customFormations.value = customFormations.value.filter(f => f.id !== id);
+  }
+
+  function reset() {
+    teams.value = [];
+    games.value = [];
+    customFormations.value = [];
+    hasLoaded.value = false;
+    isLoading.value = false;
+  }
+
   return {
     teams,
     games,
     isLoading,
+    hasLoaded,
     loadAll,
     addTeam,
     updateTeamIcon,
@@ -227,6 +262,10 @@ export const useAppStore = defineStore('app', () => {
     assignPlayerToPosition,
     updatePositionLocation,
     updateLineupName,
+    customFormations,
+    addCustomFormation,
+    deleteCustomFormation,
+    reset,
   };
 });
 

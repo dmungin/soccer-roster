@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import authRouter, { authMiddleware } from './server/auth.js';
 import teamsRouter from './server/routes/teams.js';
 import gamesRouter from './server/routes/games.js';
+import formationsRouter from './server/routes/formations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRouter);
 app.use('/api/teams', authMiddleware, teamsRouter);
 app.use('/api/games', authMiddleware, gamesRouter);
+app.use('/api/formations', authMiddleware, formationsRouter);
 
 // --- Static Files (production build) ---
 const distPath = path.join(__dirname, 'dist');

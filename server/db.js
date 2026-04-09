@@ -71,6 +71,16 @@ db.exec(`
     player_id TEXT,
     FOREIGN KEY (lineup_id) REFERENCES lineups(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS custom_formations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    positions TEXT NOT NULL,
+    created_by TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+  );
 `);
 
 export default db;

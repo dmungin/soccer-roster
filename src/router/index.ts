@@ -28,6 +28,11 @@ const router = createRouter({
       component: () => import('../views/GameView.vue')
     },
     {
+      path: '/builder',
+      name: 'formation-builder',
+      component: () => import('../views/FormationBuilderView.vue')
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminView.vue'),
@@ -65,7 +70,7 @@ router.beforeEach(async (to) => {
 
   // Ensure app data is loaded for authenticated users
   const appStore = useAppStore()
-  if (appStore.teams.length === 0 && appStore.games.length === 0 && !appStore.isLoading) {
+  if (!appStore.hasLoaded) {
     await appStore.loadAll()
   }
 
