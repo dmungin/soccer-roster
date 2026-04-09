@@ -43,7 +43,8 @@ test.describe('Authentication', () => {
 
   test('initial setup creates admin and redirects to home', async ({ page }) => {
     await setupAdmin(page);
-    await expect(page.locator('header').getByText('Admin')).toBeVisible();
+    // Check the Admin nav link is present (use role to avoid matching the username span)
+    await expect(page.locator('header').getByRole('link', { name: 'Admin' })).toBeVisible();
   });
 
   test('setup is blocked after first user created', async ({ page }) => {
@@ -54,7 +55,8 @@ test.describe('Authentication', () => {
   test('login works with valid credentials', async ({ page }) => {
     await login(page);
     await expect(page).toHaveURL('/');
-    await expect(page.locator('header').getByText('admin')).toBeVisible();
+    // Use exact:true so 'admin' (username span) doesn't match 'Admin' (nav link)
+    await expect(page.locator('header').getByText('admin', { exact: true })).toBeVisible();
   });
 
   test('login fails with invalid credentials', async ({ page }) => {
