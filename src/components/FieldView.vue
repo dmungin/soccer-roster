@@ -7,7 +7,7 @@
   >
     
     <!-- Field Graphic with overflow hidden for pitch lines -->
-    <div class="absolute inset-0 bg-green-600 print:!bg-transparent rounded-lg border-[3px] border-white shadow-inner print:border-none print:shadow-none bg-cover overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 bg-green-600 print:!bg-transparent rounded-none border-[3px] border-white shadow-inner print:border-none print:shadow-none bg-cover overflow-hidden pointer-events-none">
       <!-- Grass background strips -->
       <div class="absolute inset-0 pattern-grass print:hidden"></div>
       
