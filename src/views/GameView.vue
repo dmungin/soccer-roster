@@ -12,7 +12,7 @@
       <div class="flex items-center space-x-4">
         <div class="bg-white/20 p-1.5 rounded-xl backdrop-blur-sm border border-white/30 hidden sm:flex items-center justify-center w-14 h-14 shadow-inner overflow-hidden">
            <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-12 h-12 object-contain" />
-           <component v-else :is="LucideIcons[team.icon]" class="w-10 h-10 text-white"/>
+           <component v-else :is="(LucideIcons as any)[team.icon]" class="w-10 h-10 text-white"/>
         </div>
         <div>
           <h2 class="text-2xl font-black text-white flex items-center tracking-tight">
@@ -21,7 +21,7 @@
           </h2>
           <p class="text-sm font-bold text-white/80 mt-1 capitalize tracking-wide flex items-center">
              <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-3 h-3 mr-1.5 sm:hidden object-contain" />
-             <component v-else :is="LucideIcons[team.icon]" class="w-3 h-3 mr-1.5 sm:hidden"/> {{ team.name }} • {{ team.matchType }}
+             <component v-else :is="(LucideIcons as any)[team.icon]" class="w-3 h-3 mr-1.5 sm:hidden"/> {{ team.name }} • {{ team.matchType }}
           </p>
         </div>
       </div>
@@ -134,16 +134,22 @@
       <div class="flex-1 overflow-y-auto bg-gray-200/40 p-6 relative flex flex-col print:p-0 print:bg-transparent print:overflow-visible print:block print:h-auto print:min-h-0 print:w-full print:max-w-[95%] print:mx-auto print:mt-0">        
         <div v-if="game.lineups.length === 0" class="flex-1 flex flex-col items-center justify-center text-gray-400 text-sm font-bold border-2 border-dashed border-gray-300 rounded-3xl bg-white bg-opacity-60 m-4 py-16 shadow-sm print:hidden">
           <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="mb-4 opacity-30 w-16 h-16 object-contain" />
-           <component v-else :is="LucideIcons[team.icon]" class="mb-4 opacity-30 w-16 h-16 text-gray-400" />
+           <component v-else :is="(LucideIcons as any)[team.icon]" class="mb-4 opacity-30 w-16 h-16 text-gray-400" />
           No lineups added yet.<br>Create one using the {{ team.matchType }} form on the left.
         </div>
         
         <!-- Multi-Field Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6 items-start pb-12 print:grid-cols-4 print:gap-1 print:pb-0">
-          <div v-for="(lineup, i) in game.lineups" :key="lineup.id" class="flex flex-col print:break-inside-avoid">
+          <div v-for="lineup in game.lineups" :key="lineup.id" class="flex flex-col print:break-inside-avoid">
             <div class="flex justify-between items-center px-0.5 mb-1 print:mb-0 print:px-2 print:translate-y-3.5 print:translate-x-0 relative z-10 print:h-1">
               <div class="flex items-center">
-                <input v-model="lineup.name" class="font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-[100px] transition text-sm selection:bg-blue-200 print:text-black print:border-none print:w-auto print:text-[6px] print:p-0 print:h-auto print:leading-none" title="Edit Lineup Name" />
+                <input
+                  v-model="lineup.name"
+                  @blur="store.updateLineupName(game.id, lineup.id, lineup.name)"
+                  @keyup.enter="store.updateLineupName(game.id, lineup.id, lineup.name)"
+                  class="font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-[100px] transition text-sm selection:bg-blue-200 print:text-black print:border-none print:w-auto print:text-[6px] print:p-0 print:h-auto print:leading-none"
+                  title="Edit Lineup Name"
+                />
               </div>
               <div class="flex space-x-0.5 opacity-50 focus-within:opacity-100 hover:opacity-100 transition-opacity print:hidden">
                 <button @click="store.copyLineupInGame(game.id, lineup.id)" class="text-blue-600 hover:bg-blue-100 p-1 rounded transition" title="Duplicate Field Grid"><Copy class="w-3.5 h-3.5"/></button>
@@ -194,7 +200,7 @@ import { useAppStore } from '../stores/appState';
 import { FORMATIONS } from '../utils/formations';
 import type { Player, Lineup } from '../types';
 import FieldView from '../components/FieldView.vue';
-import { Trash2, Copy, Printer, GripVertical, Check, ArrowLeft, ChevronDown } from 'lucide-vue-next';
+import { Trash2, Copy, Printer, GripVertical, ArrowLeft, ChevronDown } from 'lucide-vue-next';
 import * as LucideIcons from 'lucide-vue-next';
 
 const route = useRoute();

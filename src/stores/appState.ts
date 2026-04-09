@@ -156,7 +156,7 @@ export const useAppStore = defineStore('app', () => {
     targetPos.playerId = playerId;
 
     // Persist the full lineup positions state
-    await api.put(`/games/${gameId}/lineups/${lineupId}`, {
+    const data = await api.put<{ game: Game }>(`/games/${gameId}/lineups/${lineupId}`, {
       positions: lineup.positions.map(p => ({
         id: p.id,
         label: p.label,
@@ -165,6 +165,9 @@ export const useAppStore = defineStore('app', () => {
         playerId: p.playerId,
       })),
     });
+
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
   }
 
   async function updatePositionLocation(gameId: string, lineupId: string, positionId: string, x: number, y: number) {
@@ -179,7 +182,7 @@ export const useAppStore = defineStore('app', () => {
     }
 
     // Persist
-    await api.put(`/games/${gameId}/lineups/${lineupId}`, {
+    const data = await api.put<{ game: Game }>(`/games/${gameId}/lineups/${lineupId}`, {
       positions: lineup.positions.map(p => ({
         id: p.id,
         label: p.label,
@@ -188,14 +191,15 @@ export const useAppStore = defineStore('app', () => {
         playerId: p.playerId,
       })),
     });
+
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
   }
 
   async function updateLineupName(gameId: string, lineupId: string, name: string) {
-    await api.put(`/games/${gameId}/lineups/${lineupId}`, { name });
-    const game = getGame(gameId);
-    if (!game) return;
-    const lineup = game.lineups.find(l => l.id === lineupId);
-    if (lineup) lineup.name = name;
+    const data = await api.put<{ game: Game }>(`/games/${gameId}/lineups/${lineupId}`, { name });
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
   }
 
   return {
