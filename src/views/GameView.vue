@@ -58,6 +58,19 @@
           </div>
         </div>
 
+        <div v-if="teamOtherGames.length > 0" class="mb-5 bg-white p-5 rounded-xl border border-gray-200 shadow-sm print:hidden">
+          <label class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 block">Copy From Past Game</label>
+          <div class="flex gap-2">
+            <select v-model="selectedGameToCopyId" class="border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white font-medium flex-1 min-w-0">
+              <option disabled value="">Select previous game...</option>
+              <option v-for="g in teamOtherGames" :key="g.id" :value="g.id">{{ g.name }} {{ g.date ? '(' + formatDate(g.date) + ')' : '' }}</option>
+            </select>
+            <button @click="copyFromGame" class="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-4 py-2 rounded-lg font-bold disabled:opacity-50 transition shadow-sm text-sm shrink-0 uppercase tracking-wide flex items-center" :disabled="!selectedGameToCopyId" title="Copy All Field Grids">
+               <Copy class="w-4 h-4 sm:mr-1"/> <span class="hidden sm:inline">Copy All</span>
+            </button>
+          </div>
+        </div>
+
         <div class="flex justify-between items-end mb-2.5 print:hidden">
           <h3 class="font-black text-gray-800 uppercase tracking-widest text-xs">Game Roster & Playing Time</h3>
         </div>
@@ -218,6 +231,21 @@ const availableFormations = computed(() => {
   if (!team.value) return [];
   return FORMATIONS.filter(f => f.type === team.value!.matchType);
 });
+
+const teamOtherGames = computed(() => {
+  if (!team.value || !game.value) return [];
+  return store.games.filter(g => g.teamId === team.value!.id && g.id !== game.value!.id);
+});
+
+const selectedGameToCopyId = ref('');
+
+async function copyFromGame() {
+  if (!game.value || !selectedGameToCopyId.value) return;
+  if (confirm('This will append all lineups from the selected game to this game. Do you want to proceed?')) {
+    await store.copyLineupsFromGame(game.value.id, selectedGameToCopyId.value);
+    selectedGameToCopyId.value = '';
+  }
+}
 
 function isCustomIcon(icon: string | undefined): boolean {
   if (!icon) return false;

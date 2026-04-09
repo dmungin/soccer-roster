@@ -191,5 +191,37 @@ router.delete('/:id/lineups/:lineupId', (req, res) => {
   const updated = getFullGame(game.id, req.user.id);
   res.json({ game: updated });
 });
+// POST /api/games/:id/copy-from/:sourceGameId — copy all lineups from another game
+router.post('/:id/copy-from/:sourceGameId', (req, res) => {
+  const targetGame = db.prepare('SELECT * FROM games WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (!targetGame) return res.status(404).json({ error: 'Target game not found' });
+
+  const sourceGame = db.prepare('SELECT * FROM games WHERE id = ? AND user_id = ?').get(req.params.sourceGameId, req.user.id);
+  if (!sourceGame) return res.status(404).json({ error: 'Source game not found' });
+
+  const sourceLineups = db.prepare('SELECT * FROM lineups WHERE game_id = ? ORDER BY sort_order ASC').all(sourceGame.id);
+  const insertLineup = db.prepare('INSERT INTO lineups (id, game_id, name, formation_id, sort_order) VALUES (?, ?, ?, ?, ?)');
+  const insertPos = db.prepare('INSERT INTO lineup_positions (id, lineup_id, label, x, y, player_id) VALUES (?, ?, ?, ?, ?, ?)');
+
+  const copyTransaction = db.transaction(() => {
+    let maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) as max FROM lineups WHERE game_id = ?').get(targetGame.id).max;
+
+    for (const sLineup of sourceLineups) {
+      const newLineupId = crypto.randomUUID();
+      maxOrder += 1;
+      insertLineup.run(newLineupId, targetGame.id, sLineup.name, sLineup.formation_id, maxOrder);
+
+      const positions = db.prepare('SELECT * FROM lineup_positions WHERE lineup_id = ?').all(sLineup.id);
+      for (const pos of positions) {
+        insertPos.run(crypto.randomUUID(), newLineupId, pos.label, pos.x, pos.y, pos.player_id);
+      }
+    }
+  });
+
+  copyTransaction();
+
+  const updated = getFullGame(targetGame.id, req.user.id);
+  res.status(201).json({ game: updated });
+});
 
 export default router;
