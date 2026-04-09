@@ -117,11 +117,15 @@
           </li>
           <li v-for="game in filteredGames" :key="game.id" :class="['flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border rounded-none transition duration-150 shadow-sm space-y-3 sm:space-y-0', isPastGame(game.date) ? 'bg-gray-100 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-gray-50']">
             <div>
-              <div class="font-bold text-gray-800 flex items-center text-lg leading-tight">{{ game.name }} <span v-if="game.date" class="bg-gray-100 text-gray-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded-none ml-2">{{ formatDate(game.date) }}</span></div>
+              <div class="font-bold text-gray-800 text-lg leading-tight">{{ game.name }}</div>
+              <div v-if="game.date" class="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-0.5">{{ formatDate(game.date) }}</div>
                <div class="text-[11px] font-medium text-gray-500 uppercase tracking-wide mt-1 flex items-center">
-                  <img v-if="isCustomIcon(store.getTeam(game.teamId)?.icon)" :src="store.getTeam(game.teamId)?.icon" class="w-3 h-3 mr-1 object-contain" />
-                  <component v-else :is="(LucideIcons as any)[store.getTeam(game.teamId)?.icon || 'Shield']" class="w-3 h-3 mr-1" />
-                  {{ store.getTeam(game.teamId)?.name || 'Unknown Team' }} • {{ game.lineups.length }} lineups
+                  <template v-if="!selectedFilterTeamId">
+                    <img v-if="isCustomIcon(store.getTeam(game.teamId)?.icon)" :src="store.getTeam(game.teamId)?.icon" class="w-3 h-3 mr-1 object-contain" />
+                    <component v-else :is="(LucideIcons as any)[store.getTeam(game.teamId)?.icon || 'Shield']" class="w-3 h-3 mr-1" />
+                    {{ store.getTeam(game.teamId)?.name || 'Unknown Team' }} • 
+                  </template>
+                  {{ game.lineups.length }} lineups
                </div>
             </div>
             <div class="flex items-center space-x-2 w-full sm:w-auto">
