@@ -143,7 +143,13 @@
           <div v-for="(lineup, i) in game.lineups" :key="lineup.id" class="flex flex-col print:break-inside-avoid">
             <div class="flex justify-between items-center px-0.5 mb-1 print:mb-0 print:px-2 print:translate-y-3.5 print:translate-x-0 relative z-10 print:h-1">
               <div class="flex items-center">
-                <input v-model="lineup.name" class="font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-[100px] transition text-sm selection:bg-blue-200 print:text-black print:border-none print:w-auto print:text-[6px] print:p-0 print:h-auto print:leading-none" title="Edit Lineup Name" />
+                <input
+                  v-model="lineup.name"
+                  @blur="store.updateLineupName(game.id, lineup.id, lineup.name)"
+                  @keyup.enter="($event.target as HTMLInputElement).blur()"
+                  class="font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-[100px] transition text-sm selection:bg-blue-200 print:text-black print:border-none print:w-auto print:text-[6px] print:p-0 print:h-auto print:leading-none"
+                  title="Edit Lineup Name"
+                />
               </div>
               <div class="flex space-x-0.5 opacity-50 focus-within:opacity-100 hover:opacity-100 transition-opacity print:hidden">
                 <button @click="store.copyLineupInGame(game.id, lineup.id)" class="text-blue-600 hover:bg-blue-100 p-1 rounded transition" title="Duplicate Field Grid"><Copy class="w-3.5 h-3.5"/></button>
