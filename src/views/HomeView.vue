@@ -10,9 +10,6 @@
         <path d="M22 8h-3v8h3"/>
       </svg>
       <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight text-center">Soccer Roster</h1>
-      <router-link to="/builder" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-md shadow-sm transition flex items-center gap-2 uppercase tracking-wide text-sm">
-        <component :is="LucideIcons.LayoutGrid" class="w-4 h-4"/> Build custom formation
-      </router-link>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -36,8 +33,8 @@
               <label class="text-[11px] font-bold uppercase text-gray-500 mb-2 block">Mascot Icon</label>
                <div class="flex flex-col gap-2">
                  <div class="flex flex-wrap gap-1">
-                  <button v-for="i in icons" :key="i" @click="selectedIcon = i" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition', selectedIcon === i ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" :title="i">
-                    <component :is="LucideIcons[i]" class="w-4 h-4 text-gray-800"/>
+                   <button v-for="i in icons" :key="i" @click="selectedIcon = i" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition', selectedIcon === i ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" :title="i">
+                     <component :is="(LucideIcons as any)[i]" class="w-4 h-4 text-gray-800"/>
                   </button>
                   <button @click="selectedIcon = 'custom'" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition text-[9px] font-black text-gray-800 uppercase', selectedIcon === 'custom' ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" title="Custom URL">URL</button>
                  </div>
@@ -72,7 +69,7 @@
             <div class="flex items-center space-x-4">
               <div :class="[team.color, 'w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-inner overflow-hidden']">
                  <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-8 h-8 object-contain" />
-                 <component v-else :is="LucideIcons[team.icon]" class="w-5 h-5"/>
+                 <component v-else :is="(LucideIcons as any)[team.icon]" class="w-5 h-5"/>
               </div>
               <div class="flex flex-col">
                 <span class="font-bold text-gray-800 text-lg leading-tight">{{ team.name }}</span>
@@ -110,7 +107,7 @@
               <div class="font-bold text-gray-800 flex items-center text-lg leading-tight">{{ game.name }} <span v-if="game.date" class="bg-gray-100 text-gray-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2">{{ game.date }}</span></div>
               <div class="text-[11px] font-medium text-gray-500 uppercase tracking-wide mt-1 flex items-center">
                  <img v-if="isCustomIcon(store.getTeam(game.teamId)?.icon)" :src="store.getTeam(game.teamId)?.icon" class="w-3 h-3 mr-1 object-contain" />
-                 <component v-else :is="LucideIcons[store.getTeam(game.teamId)?.icon || 'Shield']" class="w-3 h-3 mr-1" />
+                 <component v-else :is="(LucideIcons as any)[store.getTeam(game.teamId)?.icon || 'Shield']" class="w-3 h-3 mr-1" />
                  {{ store.getTeam(game.teamId)?.name || 'Unknown Team' }} • {{ game.lineups.length }} lineups
               </div>
             </div>
@@ -121,7 +118,66 @@
           </li>
         </ul>
       </section>
+    </div>
 
+    <!-- Custom Formations Card -->
+    <div class="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-3 sm:space-y-0 border-b border-gray-100 pb-4">
+          <h2 class="text-2xl font-bold flex items-center text-gray-800"><component :is="LucideIcons.LayoutGrid" class="mr-2 w-6 h-6 text-blue-600" /> Custom Formations</h2>
+          <router-link to="/builder" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-sm transition flex items-center gap-2 text-sm uppercase tracking-wide">
+             <component :is="LucideIcons.Plus" class="w-4 h-4"/> Create Formation
+          </router-link>
+       </div>
+       
+       <ul class="space-y-3">
+          <li v-if="store.customFormations.length === 0" class="text-gray-400 text-sm py-8 text-center italic border-2 border-dashed rounded-lg bg-gray-50">No custom formations created.</li>
+          <li v-for="formation in store.customFormations" :key="formation.id" class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 hover:bg-gray-50 border rounded-lg transition duration-150 shadow-sm bg-white space-y-3 sm:space-y-0">
+            <div>
+               <div class="font-bold text-gray-800 flex items-center text-lg leading-tight">{{ formation.name }}</div>
+               <div class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-1">
+                  {{ formation.type }} &bull; {{ formation.positions.length }} positions
+               </div>
+            </div>
+            <div class="flex items-center space-x-2 w-full sm:w-auto">
+               <button @click="previewFormation(formation)" class="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-bold px-4 py-2 rounded text-sm transition shadow-sm flex-1 sm:flex-none">Preview</button>
+               <button @click="deleteFormation(formation.id)" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded transition" title="Delete Formation"><Trash2 class="w-4 h-4"/></button>
+            </div>
+          </li>
+       </ul>
+    </div>
+
+    <!-- Preview Modal -->
+    <div v-if="previewNode" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" @click.self="previewNode = null">
+      <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg flex flex-col max-h-[90vh]">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-black text-gray-800 tracking-tight">{{ previewNode.name }} <span class="bg-gray-100 text-gray-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2 align-middle">{{ previewNode.type }}</span></h2>
+          <button @click="previewNode = null" class="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition"><component :is="LucideIcons.X" class="w-6 h-6"/></button>
+        </div>
+        <div class="flex-1 overflow-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-4 sm:p-8 flex items-center justify-center relative">
+            <div class="w-full max-w-[400px] aspect-[3/4] relative bg-[#2a8b3e] rounded-xl border-[6px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] overflow-hidden">
+                <div class="absolute inset-0 pattern-grass"></div>
+                <div class="absolute inset-0 m-4 border-2 border-white/60 pointer-events-none rounded-[1px]"></div>
+                <div class="absolute top-1/2 left-4 right-4 border-t-2 border-white/60 pointer-events-none"></div>
+                <div class="absolute top-1/2 left-1/2 w-32 h-32 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/60 pointer-events-none"></div>
+                <div class="absolute top-1/2 left-1/2 w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 bg-white/60 rounded-full pointer-events-none"></div>
+
+                <div class="absolute top-4 left-1/2 w-48 h-24 -translate-x-1/2 border-2 border-t-0 border-white/60 pointer-events-none"></div>
+                <div class="absolute top-4 left-1/2 w-20 h-10 -translate-x-1/2 border-2 border-t-0 border-white/60 pointer-events-none"></div>
+                
+                <div class="absolute bottom-4 left-1/2 w-48 h-24 -translate-x-1/2 border-2 border-b-0 border-white/60 pointer-events-none"></div>
+                <div class="absolute bottom-4 left-1/2 w-20 h-10 -translate-x-1/2 border-2 border-b-0 border-white/60 pointer-events-none"></div>
+                
+                <div 
+                  v-for="p in previewNode.positions" 
+                  :key="p.id"
+                  class="absolute w-8 h-8 sm:w-10 sm:h-10 -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center border-2 border-white/80 shadow-[0_4px_15px_rgba(0,0,0,0.4)] bg-black/60"
+                  :style="{ left: `${p.x}%`, top: `${p.y}%` }"
+                >
+                  <span class="text-white font-bold text-[9px] sm:text-[10.5px] select-none tracking-widest">{{ p.label }}</span>
+                </div>
+            </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -149,6 +205,17 @@ const selectedIcon = ref(icons[0]);
 const customIconUrl = ref('');
 const selectedMatchType = ref<FormationType>('11v11');
 const selectedDefaultFormationId = ref('11v11-4-3-3');
+const previewNode = ref<Formation | null>(null);
+
+function previewFormation(f: Formation) {
+  previewNode.value = f;
+}
+
+async function deleteFormation(id: string) {
+  if (confirm('Are you sure you want to delete this custom formation?')) {
+    await store.deleteCustomFormation(id);
+  }
+}
 
 function isCustomIcon(icon: string | undefined): boolean {
   if (!icon) return false;
@@ -193,3 +260,9 @@ async function createGame() {
   }
 }
 </script>
+
+<style scoped>
+.pattern-grass {
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 10%, rgba(255,255,255,0.06) 10%, rgba(255,255,255,0.06) 20%);
+}
+</style>

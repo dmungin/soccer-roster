@@ -208,6 +208,11 @@ export const useAppStore = defineStore('app', () => {
     return data.formation;
   }
 
+  async function deleteCustomFormation(id: string) {
+    await api.delete(`/formations/${id}`);
+    customFormations.value = customFormations.value.filter(f => f.id !== id);
+  }
+
   return {
     teams,
     games,
@@ -232,6 +237,7 @@ export const useAppStore = defineStore('app', () => {
     updateLineupName,
     customFormations,
     addCustomFormation,
+    deleteCustomFormation,
   };
 });
 

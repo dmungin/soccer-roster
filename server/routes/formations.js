@@ -6,7 +6,7 @@ const router = Router();
 
 // GET /api/formations — list custom formations
 router.get('/', (req, res) => {
-  const formations = db.prepare('SELECT * FROM custom_formations ORDER BY created_at DESC').all();
+  const formations = db.prepare('SELECT * FROM custom_formations WHERE created_by = ? ORDER BY created_at DESC').all(req.user.id);
   
   const mapped = formations.map(f => ({
     id: f.id,
@@ -34,8 +34,8 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: `Invalid number of positions for ${type}. Expected ${expectedSize}.` });
   }
 
-  // Check if formation name already exists to prevent duplicates
-  const existing = db.prepare('SELECT id FROM custom_formations WHERE LOWER(name) = LOWER(?)').get(name);
+  // Check if formation name already exists to prevent duplicates for this user
+  const existing = db.prepare('SELECT id FROM custom_formations WHERE LOWER(name) = LOWER(?) AND created_by = ?').get(name, req.user.id);
   if (existing) {
     return res.status(400).json({ error: `Formation with name "${name}" already exists.` });
   }
@@ -45,6 +45,14 @@ router.post('/', (req, res) => {
     .run(id, name, type, JSON.stringify(positions), req.user.id);
 
   res.status(201).json({ formation: { id, name, type, positions, createdBy: req.user.id } });
+});
+
+// DELETE /api/formations/:id — delete a custom formation (owner only)
+router.delete('/:id', (req, res) => {
+  const formation = db.prepare('SELECT * FROM custom_formations WHERE id = ? AND created_by = ?').get(req.params.id, req.user.id);
+  if (!formation) return res.status(404).json({ error: 'Formation not found' });
+  db.prepare('DELETE FROM custom_formations WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
 });
 
 export default router;
