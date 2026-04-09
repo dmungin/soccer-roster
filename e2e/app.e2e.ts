@@ -133,12 +133,13 @@ test.describe('Game CRUD', () => {
 
   test('creates a game', async ({ page }) => {
     const section = gamesSection(page);
-    await section.locator('input[placeholder*="Game Name"]').fill('vs Panthers');
-    // Wait for team options to load
+    // Select team first to show the add game form
     const teamSelect = section.locator('select');
-    await expect(teamSelect.locator('option')).not.toHaveCount(1); // More than just the disabled option
+    await expect(teamSelect.locator('option')).not.toHaveCount(1);
     await teamSelect.selectOption({ index: 1 });
-    await section.getByRole('button', { name: 'Schedule Game' }).click();
+    
+    await section.locator('input[placeholder*="Game Name"]').fill('vs Panthers');
+    await section.getByRole('button', { name: 'Schedule Game', exact: true }).click();
     await expect(section.locator('li', { hasText: 'vs Panthers' })).toBeVisible();
   });
 
@@ -167,11 +168,13 @@ test.describe('Game CRUD', () => {
 
   test('deletes a game', async ({ page }) => {
     const section = gamesSection(page);
-    await section.locator('input[placeholder*="Game Name"]').fill('Temp Game');
+    // Select team first
     const teamSelect = section.locator('select');
     await expect(teamSelect.locator('option')).not.toHaveCount(1);
     await teamSelect.selectOption({ index: 1 });
-    await section.getByRole('button', { name: 'Schedule Game' }).click();
+
+    await section.locator('input[placeholder*="Game Name"]').fill('Temp Game');
+    await section.getByRole('button', { name: 'Schedule Game', exact: true }).click();
     await expect(section.locator('li', { hasText: 'Temp Game' })).toBeVisible();
 
     // Delete it
