@@ -139,6 +139,12 @@ export const useAppStore = defineStore('app', () => {
     return data.game.lineups[data.game.lineups.length - 1];
   }
 
+  async function copyLineupsFromGame(targetGameId: string, sourceGameId: string) {
+    const data = await api.post<{ game: Game }>(`/games/${targetGameId}/copy-from/${sourceGameId}`);
+    const idx = games.value.findIndex(g => g.id === targetGameId);
+    if (idx !== -1) games.value[idx] = data.game;
+  }
+
   async function deleteLineup(gameId: string, lineupId: string) {
     const data = await api.delete<{ game: Game }>(`/games/${gameId}/lineups/${lineupId}`);
     const idx = games.value.findIndex(g => g.id === gameId);
@@ -251,6 +257,7 @@ export const useAppStore = defineStore('app', () => {
     getGame,
     addLineupToGame,
     copyLineupInGame,
+    copyLineupsFromGame,
     deleteLineup,
     assignPlayerToPosition,
     updatePositionLocation,
