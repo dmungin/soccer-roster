@@ -55,16 +55,18 @@
               draggable="true" 
               @dragstart="onSidebarDragStart($event, pos)"
               :title="pos.name"
+              :data-testid="`drag-pos-${pos.label}`"
             >
               {{ pos.label }}
             </div>
           </div>
         </div>
       </div>
-
+ 
       <!-- Field Layout Area -->
       <div class="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-y-auto relative bg-gradient-to-br from-gray-100 to-gray-200">
          <div ref="fieldContainerRef" class="w-full max-w-[500px] aspect-[3/4] relative bg-[#2a8b3e] rounded-xl border-[6px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] overflow-hidden"
+              data-testid="formation-field"
               @dragover.prevent="onFieldDragOver"
               @drop="onFieldDrop">
             <!-- Grass background strips -->
@@ -173,7 +175,7 @@ const isDuplicateName = computed(() => {
 function onSidebarDragStart(e: DragEvent, posData: { label: string, name: string }) {
   if (e.dataTransfer) {
     e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('application/json', JSON.stringify({ 
+    e.dataTransfer.setData('text/plain', JSON.stringify({ 
       source: 'sidebar', 
       label: posData.label,
       name: posData.name
@@ -184,7 +186,7 @@ function onSidebarDragStart(e: DragEvent, posData: { label: string, name: string
 function onNodeDragStart(e: DragEvent, p: { id: string }) {
   if (e.dataTransfer) {
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/json', JSON.stringify({ 
+    e.dataTransfer.setData('text/plain', JSON.stringify({ 
       source: 'node', 
       id: p.id
     }));
@@ -199,7 +201,7 @@ function onFieldDragOver(e: DragEvent) {
 
 function onFieldDrop(e: DragEvent) {
   try {
-    const dataStr = e.dataTransfer?.getData('application/json');
+    const dataStr = e.dataTransfer?.getData('text/plain');
     if (!dataStr) return;
     const data = JSON.parse(dataStr);
     
@@ -211,8 +213,9 @@ function onFieldDrop(e: DragEvent) {
     const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
     
     if (data.source === 'sidebar') {
+      const id = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).substring(2);
       positionsObj.value.push({
-        id: crypto.randomUUID(),
+        id,
         label: data.label,
         name: data.name,
         x: Math.round(x*10)/10,

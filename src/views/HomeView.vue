@@ -151,7 +151,7 @@
       <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg flex flex-col max-h-[90vh]">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-black text-gray-800 tracking-tight">{{ previewNode.name }} <span class="bg-gray-100 text-gray-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2 align-middle">{{ previewNode.type }}</span></h2>
-          <button @click="previewNode = null" class="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition"><component :is="LucideIcons.X" class="w-6 h-6"/></button>
+          <button @click="previewNode = null" class="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition" aria-label="Close Preview"><component :is="LucideIcons.X" class="w-5 h-5"/></button>
         </div>
         <div class="flex-1 overflow-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-4 sm:p-8 flex items-center justify-center relative">
             <div class="w-full max-w-[400px] aspect-[3/4] relative bg-[#2a8b3e] rounded-xl border-[6px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] overflow-hidden">
