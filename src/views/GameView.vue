@@ -140,7 +140,7 @@
               </tr>
               <!-- Play Percentage Row -->
               <tr v-if="team.players.length > 0" class="border-t-[0.5px] border-gray-800 bg-gray-50/30">
-                <td class="px-1.5 py-[1px] border-r-[0.5px] border-gray-400 font-black text-center text-[7px]">Play %</td>
+              <td class="px-1.5 py-[1px] border-r-[0.5px] border-gray-400 font-black text-center text-[7px]"><span class="whitespace-nowrap">Play %</span></td>
                 <td v-for="p in team.players" :key="p.id" class="px-0.5 py-[1px] text-center border-r-[0.5px] border-gray-400 font-black text-[8px]">
                   {{ getPlayPercentage(p.id) }}%
                 </td>

@@ -10,7 +10,7 @@
             <circle cx="12" cy="12" r="3"/>
           </svg>
         </div>
-        <span class="font-bold text-gray-800 text-sm">Soccer Roster</span>
+        <span class="font-bold text-gray-800 text-sm">First Touch</span>
       </router-link>
       <div class="flex items-center space-x-3">
         <!-- Admin Panel Link -->

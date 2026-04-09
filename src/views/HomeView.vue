@@ -9,7 +9,7 @@
         <path d="M2 8h3v8H2"/>
         <path d="M22 8h-3v8h3"/>
       </svg>
-      <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight text-center">Soccer Roster</h1>
+      <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight text-center">First Touch</h1>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

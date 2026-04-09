@@ -18,7 +18,7 @@
             <path d="M22 8h-3v8h3"/>
           </svg>
         </div>
-        <h1 class="text-3xl font-black text-white tracking-tight uppercase">Soccer Roster</h1>
+        <h1 class="text-3xl font-black text-white tracking-tight uppercase">First Touch</h1>
         <p class="text-blue-300/70 text-sm mt-1 font-medium uppercase tracking-tight">
           {{ authStore.needsSetup ? 'Create your admin account' : 'Sign in to your account' }}
         </p>
