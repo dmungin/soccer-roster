@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.vscode
+e2e/test-results
+playwright-report
+blob-report
+coverage
+.env
+.env.*
+!.env.example
