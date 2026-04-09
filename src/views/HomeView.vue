@@ -85,24 +85,32 @@
       </section>
 
       <!-- Games -->
-      <section class="bg-white p-6 rounded-none shadow-sm border border-gray-200 block">
+      <section class="bg-white p-6 rounded-none shadow-sm border border-gray-200 block flex flex-col">
         <h2 class="text-2xl font-bold mb-4 flex items-center"><Calendar class="mr-2 w-6 h-6 text-blue-600" /> Scheduled Games</h2>
-        <div class="flex flex-col space-y-3 mb-6 bg-gray-50 p-5 rounded-none border border-gray-200 shadow-inner">
-          <label class="text-sm font-extrabold text-gray-800 uppercase tracking-wider block">Create New Game</label>
-          <input v-model="newGameName" placeholder="Game Name/Opponent (e.g. vs Milford)" class="border border-gray-300 rounded-none px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400" />
-          <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-            <input v-model="newGameDate" type="date" class="border border-gray-300 rounded-none px-3 py-2 text-sm outline-none focus:border-blue-500" />
-            <select v-model="newGameTeamId" class="border border-gray-300 rounded-none px-3 py-2 flex-1 text-sm outline-none focus:border-blue-500 bg-white">
-              <option disabled value="">Select Home Team...</option>
-              <option v-for="team in store.teams" :key="team.id" :value="team.id">{{ team.name }} ({{ team.matchType }})</option>
-            </select>
+        
+        <!-- Team Filter/Selector -->
+        <div class="mb-6">
+          <label class="text-xs font-black uppercase text-gray-400 tracking-widest mb-2 block">Select Team to Manage</label>
+          <select v-model="selectedFilterTeamId" class="w-full border border-gray-300 rounded-none px-3 py-2 text-sm bg-white font-bold outline-none focus:border-blue-500">
+            <option value="">All Teams (View Only)</option>
+            <option v-for="team in store.teams" :key="team.id" :value="team.id">{{ team.name }} ({{ team.matchType }})</option>
+          </select>
+        </div>
+
+        <div v-if="selectedFilterTeamId" class="flex flex-col space-y-3 mb-6 bg-gray-50 border border-gray-200 p-5 rounded-none shadow-inner">
+          <label class="text-sm font-extrabold text-gray-800 uppercase tracking-wider block">Add Game for {{ store.getTeam(selectedFilterTeamId)?.name }}</label>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input v-model="newGameName" placeholder="Game Name/Opponent (e.g. vs Milford)" class="flex-1 border border-gray-300 rounded-none px-3 py-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400" />
+            <input v-model="newGameDate" type="date" class="border border-gray-300 rounded-none px-3 py-2 text-sm outline-none focus:border-blue-500 w-full sm:w-auto" />
           </div>
-          <button @click="createGame" class="bg-blue-600 text-white w-full px-4 py-2 rounded-none font-bold hover:bg-blue-700 disabled:opacity-50 transition text-sm shadow-sm" :disabled="!newGameTeamId || !newGameName.trim()">Schedule Game</button>
+          <button @click="createGame" class="bg-blue-600 w-full text-white px-4 py-2 mt-2 rounded-none font-bold hover:bg-blue-700 disabled:opacity-50 transition shadow-sm text-sm" :disabled="!newGameName.trim()">Schedule Game</button>
         </div>
         
-        <ul class="space-y-2">
-          <li v-if="store.games.length === 0" class="text-gray-400 text-sm py-8 text-center italic border-2 border-dashed rounded-none">No games created.</li>
-          <li v-for="game in store.games" :key="game.id" class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 hover:bg-gray-50 border rounded-none transition duration-150 shadow-sm bg-white space-y-3 sm:space-y-0">
+        <ul class="space-y-2 flex-1 overflow-y-auto">
+          <li v-if="filteredGames.length === 0" class="text-gray-400 text-sm py-8 text-center italic border-2 border-dashed rounded-none bg-gray-50">
+            {{ selectedFilterTeamId ? 'No games scheduled for this team.' : 'Select a team above or view all games below.' }}
+          </li>
+          <li v-for="game in filteredGames" :key="game.id" :class="['flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border rounded-none transition duration-150 shadow-sm space-y-3 sm:space-y-0', isPastGame(game.date) ? 'bg-gray-100 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-gray-50']">
             <div>
               <div class="font-bold text-gray-800 flex items-center text-lg leading-tight">{{ game.name }} <span v-if="game.date" class="bg-gray-100 text-gray-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded-none ml-2">{{ formatDate(game.date) }}</span></div>
                <div class="text-[11px] font-medium text-gray-500 uppercase tracking-wide mt-1 flex items-center">
@@ -189,14 +197,22 @@ import { Users, Calendar, Trash2 } from 'lucide-vue-next';
 import * as LucideIcons from 'lucide-vue-next';
 import { FORMATIONS } from '../utils/formations';
 import { formatDate } from '../utils/date';
-import type { FormationType } from '../types';
+import type { FormationType, Formation } from '../types';
+import { computed, watch } from 'vue';
 
 const store = useAppStore();
 
 const newTeamName = ref('');
 const newGameName = ref('');
 const newGameDate = ref('');
-const newGameTeamId = ref('');
+const selectedFilterTeamId = ref('');
+
+// Auto-select team if only one exists
+watch(() => store.teams.length, (count) => {
+  if (count === 1 && !selectedFilterTeamId.value) {
+    selectedFilterTeamId.value = store.teams[0].id;
+  }
+}, { immediate: true });
 
 // Customization options
 const colors = ['bg-blue-600', 'bg-red-600', 'bg-green-600', 'bg-yellow-500', 'bg-purple-600', 'bg-orange-500', 'bg-slate-800', 'bg-teal-600'];
@@ -207,6 +223,26 @@ const customIconUrl = ref('');
 const selectedMatchType = ref<FormationType>('11v11');
 const selectedDefaultFormationId = ref('11v11-4-3-3');
 const previewNode = ref<Formation | null>(null);
+
+const filteredGames = computed(() => {
+  const games = !selectedFilterTeamId.value 
+    ? [...store.games] 
+    : store.games.filter(g => g.teamId === selectedFilterTeamId.value);
+    
+  return games.sort((a, b) => {
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+});
+
+function isPastGame(dateStr: string | undefined): boolean {
+  if (!dateStr) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const gameDate = new Date(dateStr);
+  return gameDate < today;
+}
 
 function previewFormation(f: Formation) {
   previewNode.value = f;
@@ -254,8 +290,8 @@ async function createTeam() {
 }
 
 async function createGame() {
-  if (newGameName.value.trim() && newGameTeamId.value) {
-    await store.addGame(newGameName.value.trim(), newGameTeamId.value, newGameDate.value);
+  if (newGameName.value.trim() && selectedFilterTeamId.value) {
+    await store.addGame(newGameName.value.trim(), selectedFilterTeamId.value, newGameDate.value);
     newGameName.value = '';
     newGameDate.value = '';
   }

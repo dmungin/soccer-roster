@@ -8,7 +8,7 @@ export default defineConfig({
   reporter: 'list',
   timeout: 30000,
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3001',
     trace: 'on-first-retry',
   },
   projects: [
@@ -19,11 +19,11 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run build && DB_PATH=./data/e2e-test.db node server.js',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
+    url: 'http://localhost:3001',
+    reuseExistingServer: false,
     timeout: 30000,
     env: {
-      PORT: '3000',
+      PORT: '3001',
       DB_PATH: './data/e2e-test.db',
     },
   },
