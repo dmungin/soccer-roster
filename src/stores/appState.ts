@@ -8,6 +8,7 @@ export const useAppStore = defineStore('app', () => {
   const games = ref<Game[]>([]);
   const customFormations = ref<Formation[]>([]);
   const isLoading = ref(false);
+  const hasLoaded = ref(false);
 
   // --- Data Loading ---
   async function loadAll() {
@@ -21,6 +22,7 @@ export const useAppStore = defineStore('app', () => {
       teams.value = teamsData.teams;
       games.value = gamesData.games;
       customFormations.value = formationsData.formations;
+      hasLoaded.value = true;
     } catch (err) {
       console.error('Failed to load data:', err);
     } finally {
@@ -217,6 +219,7 @@ export const useAppStore = defineStore('app', () => {
     teams,
     games,
     isLoading,
+    hasLoaded,
     loadAll,
     addTeam,
     updateTeamIcon,

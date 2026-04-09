@@ -70,7 +70,7 @@ router.beforeEach(async (to) => {
 
   // Ensure app data is loaded for authenticated users
   const appStore = useAppStore()
-  if (appStore.teams.length === 0 && appStore.games.length === 0 && !appStore.isLoading) {
+  if (!appStore.hasLoaded && !appStore.isLoading) {
     await appStore.loadAll()
   }
 
