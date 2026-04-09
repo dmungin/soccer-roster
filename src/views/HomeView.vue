@@ -24,7 +24,7 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="text-[11px] font-bold uppercase text-gray-500 mb-2 block">Brand Color</label>
+              <label class="text-[11px] font-bold uppercase text-gray-500 mb-2 block">Team Color</label>
               <div class="flex flex-wrap gap-2">
                 <button v-for="c in colors" :key="c" @click="selectedColor = c" :class="[c, 'w-6 h-6 rounded-full cursor-pointer border-2 transition', selectedColor === c ? 'border-gray-800 scale-110 shadow-sm' : 'border-transparent']" :title="c"></button>
               </div>
@@ -34,7 +34,7 @@
                <div class="flex flex-col gap-2">
                  <div class="flex flex-wrap gap-1">
                   <button v-for="i in icons" :key="i" @click="selectedIcon = i" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition', selectedIcon === i ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" :title="i">
-                    <component :is="LucideIcons[i]" class="w-4 h-4 text-gray-800"/>
+                    <component :is="(LucideIcons as any)[i]" class="w-4 h-4 text-gray-800"/>
                   </button>
                   <button @click="selectedIcon = 'custom'" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition text-[9px] font-black text-gray-800 uppercase', selectedIcon === 'custom' ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" title="Custom URL">URL</button>
                  </div>
@@ -69,7 +69,7 @@
             <div class="flex items-center space-x-4">
               <div :class="[team.color, 'w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-inner overflow-hidden']">
                  <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-8 h-8 object-contain" />
-                 <component v-else :is="LucideIcons[team.icon]" class="w-5 h-5"/>
+                 <component v-else :is="(LucideIcons as any)[team.icon]" class="w-5 h-5"/>
               </div>
               <div class="flex flex-col">
                 <span class="font-bold text-gray-800 text-lg leading-tight">{{ team.name }}</span>
@@ -104,12 +104,12 @@
           <li v-if="store.games.length === 0" class="text-gray-400 text-sm py-8 text-center italic border-2 border-dashed rounded-lg">No games created.</li>
           <li v-for="game in store.games" :key="game.id" class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 hover:bg-gray-50 border rounded-lg transition duration-150 shadow-sm bg-white space-y-3 sm:space-y-0">
             <div>
-              <div class="font-bold text-gray-800 flex items-center text-lg leading-tight">{{ game.name }} <span v-if="game.date" class="bg-gray-100 text-gray-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2">{{ game.date }}</span></div>
-              <div class="text-[11px] font-medium text-gray-500 uppercase tracking-wide mt-1 flex items-center">
-                 <img v-if="isCustomIcon(store.getTeam(game.teamId)?.icon)" :src="store.getTeam(game.teamId)?.icon" class="w-3 h-3 mr-1 object-contain" />
-                 <component v-else :is="LucideIcons[store.getTeam(game.teamId)?.icon || 'Shield']" class="w-3 h-3 mr-1" />
-                 {{ store.getTeam(game.teamId)?.name || 'Unknown Team' }} • {{ game.lineups.length }} lineups
-              </div>
+              <div class="font-bold text-gray-800 flex items-center text-lg leading-tight">{{ game.name }} <span v-if="game.date" class="bg-gray-100 text-gray-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded ml-2">{{ formatDate(game.date) }}</span></div>
+               <div class="text-[11px] font-medium text-gray-500 uppercase tracking-wide mt-1 flex items-center">
+                  <img v-if="isCustomIcon(store.getTeam(game.teamId)?.icon)" :src="store.getTeam(game.teamId)?.icon" class="w-3 h-3 mr-1 object-contain" />
+                  <component v-else :is="(LucideIcons as any)[store.getTeam(game.teamId)?.icon || 'Shield']" class="w-3 h-3 mr-1" />
+                  {{ store.getTeam(game.teamId)?.name || 'Unknown Team' }} • {{ game.lineups.length }} lineups
+               </div>
             </div>
             <div class="flex items-center space-x-2 w-full sm:w-auto">
               <router-link :to="`/game/${game.id}`" class="bg-blue-50 flex-1 sm:flex-none text-center text-blue-700 border border-blue-200 hover:bg-blue-100 font-bold px-4 py-2 rounded text-sm transition shadow-sm">Open Game</router-link>
@@ -129,7 +129,8 @@ import { useAppStore } from '../stores/appState';
 import { Users, Calendar, Trash2 } from 'lucide-vue-next';
 import * as LucideIcons from 'lucide-vue-next';
 import { FORMATIONS } from '../utils/formations';
-import type { FormationType, Formation } from '../types';
+import { formatDate } from '../utils/date';
+import type { FormationType } from '../types';
 
 const store = useAppStore();
 
