@@ -13,6 +13,9 @@ export const useAppStore = defineStore('app', () => {
 
   // --- Data Loading ---
   async function loadAll() {
+    // If we've already loaded and haven't reset, we're good
+    if (hasLoaded.value) return;
+    // If we're already loading, return that same promise
     if (loadPromise) return loadPromise;
     
     loadPromise = (async () => {
@@ -25,7 +28,7 @@ export const useAppStore = defineStore('app', () => {
         ]);
         teams.value = teamsData.teams;
         games.value = gamesData.games;
-        customFormations.value = formationsData.formations;
+        customFormations.value = formationsData.formations || [];
         hasLoaded.value = true;
       } catch (err) {
         console.error('Failed to load data:', err);
@@ -236,6 +239,7 @@ export const useAppStore = defineStore('app', () => {
     customFormations.value = [];
     hasLoaded.value = false;
     isLoading.value = false;
+    loadPromise = null;
   }
 
   return {

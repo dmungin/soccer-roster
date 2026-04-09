@@ -3,21 +3,21 @@
     <!-- Header -->
     <div class="px-6 py-5 flex flex-wrap gap-4 items-center justify-between border-b border-gray-200 z-10 bg-gray-50 shadow-sm">
       <div class="flex items-center space-x-6 w-full lg:w-auto">
-        <router-link to="/" class="flex items-center justify-center bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-md transition shadow-sm h-[42px]">
+        <router-link to="/" class="flex items-center justify-center bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-none transition shadow-sm h-[42px]">
           <ArrowLeft class="w-5 h-5"/>
         </router-link>
         
         <div class="flex items-center space-x-3 flex-1 min-w-[200px]">
           <label class="text-xs font-bold uppercase text-gray-500 whitespace-nowrap">Name</label>
           <div class="relative w-full">
-            <input v-model="formationName" placeholder="e.g. 4-4-2" :class="['border rounded px-3 py-2 outline-none text-sm font-bold w-full transition', isDuplicateName ? 'border-red-500 focus:border-red-500 bg-red-50 focus:ring-1 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500']" />
+            <input v-model="formationName" placeholder="e.g. 4-4-2" :class="['border rounded-none px-3 py-2 outline-none text-sm font-bold w-full transition', isDuplicateName ? 'border-red-500 focus:border-red-500 bg-red-50 focus:ring-1 focus:ring-red-500' : 'border-gray-300 focus:border-blue-500']" />
             <p v-if="isDuplicateName" class="text-[10px] text-red-600 font-bold absolute -bottom-4 left-0 truncate">Name already exists!</p>
           </div>
         </div>
 
         <div class="flex items-center space-x-3 shrink-0">
           <label class="text-xs font-bold uppercase text-gray-500 hidden sm:block">Size</label>
-          <select v-model="formationSize" class="border border-gray-300 rounded px-3 py-2 outline-none focus:border-blue-500 text-sm font-bold bg-white w-[120px]">
+          <select v-model="formationSize" class="border border-gray-300 rounded-none px-3 py-2 outline-none focus:border-blue-500 text-sm font-bold bg-white w-[120px]">
             <option value="11v11">11 v 11</option>
             <option value="9v9">9 v 9</option>
             <option value="7v7">7 v 7</option>
@@ -27,12 +27,12 @@
 
       <div class="flex-1 lg:flex-none flex items-center justify-end w-full lg:w-auto mt-2 lg:mt-0">
          <span v-if="positionsObj.length !== expectedCount" class="text-red-500 font-bold text-sm mr-4">
-           Added {{ positionsObj.length }} / {{ expectedCount }} positions
+            {{ positionsObj.length }} / {{ expectedCount }} positions
          </span>
          <span v-else class="text-green-600 font-bold text-sm mr-4">
            Ready ({{expectedCount}})
          </span>
-         <button @click="saveFormation" :disabled="!formationName.trim() || isDuplicateName || positionsObj.length !== expectedCount" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded shadow transition disabled:opacity-50 tracking-wide uppercase text-sm">
+         <button @click="saveFormation" :disabled="!formationName.trim() || isDuplicateName || positionsObj.length !== expectedCount" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-none shadow transition disabled:opacity-50 tracking-wide uppercase text-sm">
            Save Formation
          </button>
       </div>
@@ -43,7 +43,7 @@
       <!-- Sidebar Options -->
       <div class="w-full md:w-[320px] shrink-0 border-r border-gray-200 bg-white flex flex-col shadow-[2px_0_10px_-5px_rgba(0,0,0,0.1)] overflow-y-auto max-h-[30vh] md:max-h-none z-10">
         <div class="p-4 bg-blue-50 border-b border-blue-100">
-          <p class="text-[13px] text-blue-800 font-medium leading-relaxed">Drag positions onto the field below to build your formation.</p>
+          <p class="text-[13px] text-blue-800 font-medium leading-relaxed">Drag positions onto the field below.</p>
         </div>
         <div v-for="(group, groupName) in POSITIONS" :key="groupName" class="border-b border-gray-100">
           <div class="px-4 py-2 bg-gray-50 font-black text-gray-600 uppercase text-[10px] tracking-widest">{{ groupName }}</div>
@@ -51,7 +51,7 @@
             <div 
               v-for="pos in group" 
               :key="pos.label" 
-              class="border border-gray-300 rounded bg-white px-3 py-1.5 flex items-center justify-center shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-grab active:cursor-grabbing text-xs font-bold text-gray-700 hover:border-blue-400 hover:text-blue-700 transition hover:shadow-md"
+              class="border border-gray-300 rounded-none bg-white px-3 py-1.5 flex items-center justify-center shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-grab active:cursor-grabbing text-xs font-bold text-gray-700 hover:border-blue-400 hover:text-blue-700 transition hover:shadow-md"
               draggable="true" 
               @dragstart="onSidebarDragStart($event, pos)"
               :title="pos.name"
@@ -65,7 +65,7 @@
  
       <!-- Field Layout Area -->
       <div class="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-y-auto relative bg-gradient-to-br from-gray-100 to-gray-200">
-         <div ref="fieldContainerRef" class="w-full max-w-[500px] aspect-[3/4] relative bg-[#2a8b3e] rounded-xl border-[6px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] overflow-hidden"
+         <div ref="fieldContainerRef" class="w-full max-w-[500px] aspect-[3/4] relative bg-[#2a8b3e] rounded-none border-[6px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] overflow-hidden"
               data-testid="formation-field"
               @dragover.prevent="onFieldDragOver"
               @drop="onFieldDrop">
@@ -73,7 +73,7 @@
             <div class="absolute inset-0 pattern-grass"></div>
             
             <!-- Field markings -->
-            <div class="absolute inset-0 m-4 border-[2.5px] border-white/60 pointer-events-none rounded-[1px]"></div>
+            <div class="absolute inset-0 m-4 border-[2.5px] border-white/60 pointer-events-none rounded-none"></div>
             <div class="absolute top-1/2 left-4 right-4 border-t-[2.5px] border-white/60 pointer-events-none"></div>
             <div class="absolute top-1/2 left-1/2 w-32 h-32 -translate-x-1/2 -translate-y-1/2 rounded-full border-[2.5px] border-white/60 pointer-events-none"></div>
             <div class="absolute top-1/2 left-1/2 w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 bg-white/60 rounded-full pointer-events-none"></div>

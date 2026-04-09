@@ -3,9 +3,9 @@
     <!-- Top Bar (when authenticated, not on login page) -->
     <header v-if="authStore.isAuthenticated && route.name !== 'login'" class="bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center shrink-0 print:hidden z-50">
       <router-link to="/" class="flex items-center space-x-2 hover:opacity-80 transition">
-        <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
+        <div class="w-7 h-7 bg-blue-600 rounded-none flex items-center justify-center">
           <svg class="w-4 h-4 text-white stroke-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+            <rect x="2" y="3" width="20" height="18" rx="0" ry="0"/>
             <line x1="12" y1="3" x2="12" y2="21"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
@@ -17,7 +17,7 @@
         <router-link
           v-if="authStore.isAdmin"
           to="/admin"
-          class="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-lg transition"
+          class="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-none transition"
           :class="route.name === 'admin'
             ? 'bg-blue-600 text-white shadow-sm'
             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-100'"
@@ -29,7 +29,7 @@
         <span class="text-xs font-medium text-gray-500">
           {{ authStore.user?.username }}
         </span>
-        <button @click="handleLogout" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition" title="Sign Out">
+        <button @click="handleLogout" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-none transition" title="Sign Out">
           <LogOut class="w-4 h-4" />
         </button>
       </div>

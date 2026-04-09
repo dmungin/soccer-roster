@@ -5,60 +5,60 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
+          <h1 class="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3 uppercase">
+            <div class="w-10 h-10 bg-blue-600 rounded-none flex items-center justify-center shadow-md">
               <Users class="w-5 h-5 text-white" />
             </div>
             User Management
           </h1>
-          <p class="text-sm text-gray-500 mt-1 ml-[52px]">
-            Manage who has access to Soccer Roster
+          <p class="text-[10px] text-gray-400 font-bold mt-1 ml-[52px] uppercase tracking-widest">
+            Manage application access
           </p>
         </div>
-        <router-link to="/" class="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 transition px-3 py-2 rounded-lg hover:bg-gray-200">
+        <router-link to="/" class="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-gray-800 transition px-3 py-2 rounded-none border border-transparent hover:border-gray-200 hover:bg-gray-100">
           <ArrowLeft class="w-4 h-4" /> Dashboard
         </router-link>
       </div>
 
       <!-- Create User Card -->
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm mb-6 overflow-hidden">
+      <div class="bg-white border border-gray-200 rounded-none shadow-sm mb-6 overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 cursor-pointer select-none" @click="showCreateForm = !showCreateForm">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+            <div class="w-8 h-8 bg-blue-50 rounded-none flex items-center justify-center">
               <UserPlus class="w-4 h-4 text-blue-600" />
             </div>
-            <span class="font-bold text-gray-800">Create New Account</span>
+            <span class="font-black text-xs uppercase tracking-widest text-gray-800">Create New Account</span>
           </div>
           <ChevronDown class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="showCreateForm ? 'rotate-180' : ''" />
         </div>
 
-        <div v-if="showCreateForm" class="p-6 space-y-4 bg-blue-50/50">
-          <div v-if="createError" class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2">
+        <div v-if="showCreateForm" class="p-6 space-y-4 bg-gray-50/50">
+          <div v-if="createError" class="bg-red-50 border border-red-200 text-red-700 rounded-none px-4 py-3 text-sm font-medium flex items-center gap-2">
             <AlertCircle class="w-4 h-4 shrink-0" /> {{ createError }}
           </div>
-          <div v-if="createSuccess" class="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2">
-            <CheckCircle class="w-4 h-4 shrink-0" /> Account <strong>{{ createSuccess }}</strong> created successfully.
+          <div v-if="createSuccess" class="bg-green-50 border border-green-200 text-green-700 rounded-none px-4 py-3 text-sm font-medium flex items-center gap-2">
+            <CheckCircle class="w-4 h-4 shrink-0" /> Account <strong>{{ createSuccess }}</strong> created.
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Username</label>
+              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Username</label>
               <input
                 id="new-username"
                 v-model="newUsername"
                 type="text"
                 placeholder="e.g. coach_jones"
-                class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 font-medium text-sm transition"
+                class="w-full px-3 py-2.5 rounded-none border border-gray-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium text-sm transition"
               />
             </div>
             <div>
-              <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Password</label>
+              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Password</label>
               <input
                 id="new-password"
                 v-model="newPassword"
                 type="password"
                 placeholder="Min. 6 characters"
-                class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 font-medium text-sm transition"
+                class="w-full px-3 py-2.5 rounded-none border border-gray-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium text-sm transition"
               />
             </div>
           </div>
@@ -66,22 +66,22 @@
           <div class="flex items-center gap-3">
             <label class="flex items-center gap-2 cursor-pointer select-none">
               <div
-                class="w-10 h-6 rounded-full relative transition-colors duration-200 cursor-pointer"
-                :class="newIsAdmin ? 'bg-blue-600' : 'bg-gray-200'"
+                class="w-10 h-6 rounded-none relative transition-colors duration-200 cursor-pointer border border-gray-300"
+                :class="newIsAdmin ? 'bg-blue-600 border-blue-600' : 'bg-gray-200'"
                 @click="newIsAdmin = !newIsAdmin"
               >
-                <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all duration-200 shadow-sm" :class="newIsAdmin ? 'left-5' : 'left-1'"></div>
+                <div class="w-4 h-4 bg-white rounded-none absolute top-[3px] transition-all duration-200 shadow-sm" :class="newIsAdmin ? 'left-[19px]' : 'left-[3px]'"></div>
               </div>
-              <span class="text-sm font-medium text-gray-700">Grant Admin Access</span>
+              <span class="text-xs font-bold text-gray-700 uppercase tracking-tight">Grant Admin Access</span>
             </label>
-            <span class="text-xs text-gray-400">Admins can create and manage other users</span>
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Managers can invite others</span>
           </div>
 
           <button
             @click="createUser"
             :disabled="isCreating || !newUsername.trim() || newPassword.length < 6"
             id="create-user-btn"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-none font-black text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
           >
             <span v-if="isCreating" class="flex items-center gap-2"><Loader2 class="w-3.5 h-3.5 animate-spin" /> Creating...</span>
             <span v-else>Create Account</span>
@@ -90,20 +90,20 @@
       </div>
 
       <!-- Users Table -->
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="bg-white border border-gray-200 rounded-none shadow-sm overflow-hidden">
         <div class="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
-          <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+          <div class="w-8 h-8 bg-gray-100 rounded-none flex items-center justify-center">
             <Users class="w-4 h-4 text-gray-500" />
           </div>
-          <span class="font-bold text-gray-800">All Users</span>
-          <span class="ml-auto text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{{ users.length }}</span>
+          <span class="font-black text-xs uppercase tracking-widest text-gray-800">All Users</span>
+          <span class="ml-auto text-xs font-black text-gray-400 bg-gray-100 px-2 py-1 rounded-none">{{ users.length }}</span>
         </div>
 
         <div v-if="isLoadingUsers" class="py-12 flex justify-center items-center text-gray-400">
           <Loader2 class="w-6 h-6 animate-spin mr-2" /> Loading users...
         </div>
 
-        <div v-else-if="users.length === 0" class="py-12 text-center text-gray-400 text-sm">
+        <div v-else-if="users.length === 0" class="py-12 text-center text-gray-400 text-sm font-medium">
           No users found.
         </div>
 
@@ -115,18 +115,18 @@
           >
             <!-- User info -->
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm">
+              <div class="w-9 h-9 rounded-none bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm">
                 {{ u.username.charAt(0).toUpperCase() }}
               </div>
               <div class="min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-bold text-gray-800">{{ u.username }}</span>
-                  <span v-if="u.id === authStore.user?.id" class="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded uppercase">You</span>
-                  <span v-if="u.isAdmin" class="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded uppercase flex items-center gap-1">
+                  <span v-if="u.id === authStore.user?.id" class="text-[10px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-none uppercase tracking-tighter">You</span>
+                  <span v-if="u.isAdmin" class="text-[10px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-none uppercase flex items-center gap-1 tracking-tighter">
                     <Shield class="w-2.5 h-2.5" /> Admin
                   </span>
                 </div>
-                <div class="text-xs text-gray-400 font-medium mt-0.5">
+                <div class="text-[10px] text-gray-400 font-bold uppercase mt-0.5 tracking-tighter">
                   Created {{ formatDate(u.created_at) }}
                 </div>
               </div>
@@ -139,7 +139,7 @@
               <div class="relative" :ref="el => resetRefs[u.id] = el">
                 <button
                   @click="toggleResetForm(u.id)"
-                  class="text-xs font-bold text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1"
+                  class="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 px-3 py-1.5 rounded-none transition flex items-center gap-1"
                   :title="`Reset ${u.username}'s password`"
                 >
                   <KeyRound class="w-3 h-3" /> Reset PW
@@ -148,29 +148,29 @@
                 <!-- Inline password reset form -->
                 <div
                   v-if="resetForms[u.id]?.open"
-                  class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-20 w-64"
+                  class="absolute right-0 top-full mt-2 bg-white border border-gray-300 rounded-none shadow-xl p-4 z-20 w-64"
                   @click.stop
                 >
-                  <p class="text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider">New Password for <span class="text-blue-600">{{ u.username }}</span></p>
+                  <p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">New PW for <span class="text-blue-600">{{ u.username }}</span></p>
                   <div v-if="resetForms[u.id].error" class="text-xs text-red-500 font-medium mb-2">{{ resetForms[u.id].error }}</div>
-                  <div v-if="resetForms[u.id].success" class="text-xs text-green-600 font-medium mb-2">✓ Password updated!</div>
+                  <div v-if="resetForms[u.id].success" class="text-xs text-green-600 font-medium mb-2">✓ Updated!</div>
                   <input
                     type="password"
                     v-model="resetForms[u.id].value"
                     placeholder="New password (min. 6 chars)"
-                    class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 mb-3"
+                    class="w-full text-sm border border-gray-200 rounded-none px-3 py-2 focus:outline-none focus:border-blue-500 mb-3"
                     @keyup.enter="submitReset(u.id)"
                   />
                   <div class="flex gap-2">
                     <button
                       @click="submitReset(u.id)"
                       :disabled="resetForms[u.id].loading || (resetForms[u.id].value?.length ?? 0) < 6"
-                      class="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition flex-1"
+                      class="bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-none hover:bg-blue-700 disabled:opacity-50 transition flex-1"
                     >
                       <span v-if="resetForms[u.id].loading">Saving...</span>
                       <span v-else>Save</span>
                     </button>
-                    <button @click="resetForms[u.id].open = false" class="border border-gray-200 text-gray-500 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button @click="resetForms[u.id].open = false" class="border border-gray-200 text-gray-500 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-none hover:bg-gray-50 transition">Cancel</button>
                   </div>
                 </div>
               </div>
@@ -179,7 +179,7 @@
               <button
                 @click="handleToggleAdmin(u.id, u.username)"
                 :class="[
-                  'text-xs font-bold border px-3 py-1.5 rounded-lg transition flex items-center gap-1',
+                  'text-[10px] font-black uppercase tracking-widest border px-3 py-1.5 rounded-none transition flex items-center gap-1',
                   u.isAdmin
                     ? 'text-amber-600 border-amber-200 bg-amber-50 hover:bg-amber-100'
                     : 'text-gray-500 border-gray-200 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50'
@@ -193,7 +193,7 @@
               <!-- Delete -->
               <button
                 @click="handleDelete(u.id, u.username)"
-                class="text-gray-300 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 p-2 rounded-lg transition"
+                class="text-gray-300 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 p-2 rounded-none transition"
                 :title="`Delete ${u.username}`"
               >
                 <Trash2 class="w-3.5 h-3.5" />
