@@ -28,6 +28,11 @@ const router = createRouter({
       component: () => import('../views/GameView.vue')
     },
     {
+      path: '/builder',
+      name: 'formation-builder',
+      component: () => import('../views/FormationBuilderView.vue')
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminView.vue'),

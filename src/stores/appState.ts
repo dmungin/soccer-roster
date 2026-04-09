@@ -1,23 +1,26 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref } from 'vue';
-import type { Team, Game, Formation } from '../types';
+import type { Team, Game, Formation, FormationType, PositionDef } from '../types';
 import { api } from '../services/api';
 
 export const useAppStore = defineStore('app', () => {
   const teams = ref<Team[]>([]);
   const games = ref<Game[]>([]);
+  const customFormations = ref<Formation[]>([]);
   const isLoading = ref(false);
 
   // --- Data Loading ---
   async function loadAll() {
     isLoading.value = true;
     try {
-      const [teamsData, gamesData] = await Promise.all([
+      const [teamsData, gamesData, formationsData] = await Promise.all([
         api.get<{ teams: Team[] }>('/teams'),
         api.get<{ games: Game[] }>('/games'),
+        api.get<{ formations: Formation[] }>('/formations').catch(() => ({ formations: [] })), // Graceful fallback
       ]);
       teams.value = teamsData.teams;
       games.value = gamesData.games;
+      customFormations.value = formationsData.formations;
     } catch (err) {
       console.error('Failed to load data:', err);
     } finally {
@@ -198,6 +201,13 @@ export const useAppStore = defineStore('app', () => {
     if (lineup) lineup.name = name;
   }
 
+  // --- Formation Actions ---
+  async function addCustomFormation(name: string, type: FormationType, positions: PositionDef[]) {
+    const data = await api.post<{ formation: Formation }>('/formations', { name, type, positions });
+    customFormations.value.unshift(data.formation);
+    return data.formation;
+  }
+
   return {
     teams,
     games,
@@ -220,6 +230,8 @@ export const useAppStore = defineStore('app', () => {
     assignPlayerToPosition,
     updatePositionLocation,
     updateLineupName,
+    customFormations,
+    addCustomFormation,
   };
 });
 

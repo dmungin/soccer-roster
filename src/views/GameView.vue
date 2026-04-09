@@ -215,7 +215,9 @@ const selectedFormationId = ref('');
 
 const availableFormations = computed(() => {
   if (!team.value) return [];
-  return FORMATIONS.filter(f => f.type === team.value!.matchType);
+  const defaults = FORMATIONS.filter(f => f.type === team.value!.matchType);
+  const customs = store.customFormations.filter(f => f.type === team.value!.matchType);
+  return [...defaults, ...customs];
 });
 
 function isCustomIcon(icon: string | undefined): boolean {

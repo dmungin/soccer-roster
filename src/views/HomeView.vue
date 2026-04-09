@@ -10,6 +10,10 @@
         <path d="M22 8h-3v8h3"/>
       </svg>
       <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight text-center">Soccer Roster</h1>
+      <router-link to="/builder" class="mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-md transition transform hover:-translate-y-0.5 flex items-center gap-2">
+        <img v-if="false" />
+        <component :is="LucideIcons.LayoutGrid" class="w-4 h-4"/> Build custom formation
+      </router-link>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -153,7 +157,9 @@ function isCustomIcon(icon: string | undefined): boolean {
 }
 
 function getFormationsForType(type: FormationType) {
-  return FORMATIONS.filter(f => f.type === type);
+  const defaults = FORMATIONS.filter(f => f.type === type);
+  const customs = store.customFormations.filter(f => f.type === type);
+  return [...defaults, ...customs];
 }
 
 function onMatchTypeChange() {
