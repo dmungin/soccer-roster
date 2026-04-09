@@ -6,12 +6,12 @@
         <div class="flex items-center space-x-4">
            <div class="bg-white/20 p-1.5 rounded-xl backdrop-blur-sm border border-white/30 hidden sm:flex items-center justify-center w-14 h-14 shadow-inner overflow-hidden">
                <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-12 h-12 object-contain" />
-               <component v-else :is="LucideIcons[team.icon]" class="w-10 h-10 text-white"/>
+               <component :is="(LucideIcons as any)[team.icon]" class="w-10 h-10 text-white"/>
            </div>
            <div>
              <h2 class="text-2xl font-black text-white tracking-tight flex items-center">
                <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-5 h-5 mr-2 sm:hidden object-contain" />
-               <component v-else :is="LucideIcons[team.icon]" class="w-5 h-5 mr-2 text-white sm:hidden"/>
+               <component v-else :is="(LucideIcons as any)[team.icon]" class="w-5 h-5 mr-2 text-white sm:hidden"/>
                {{ team.name }} Roster
              </h2>
              <p class="text-sm text-white/80 mt-1 uppercase font-bold tracking-widest">{{ team.players.length }} players total</p>
@@ -38,7 +38,7 @@
              </div>
 
              <div>
-               <label class="text-[11px] font-bold uppercase text-gray-500 mb-1.5 block">Brand Color</label>
+               <label class="text-[11px] font-bold uppercase text-gray-500 mb-1.5 block">Team Color</label>
                <div class="flex flex-wrap gap-2">
                  <button v-for="c in colors" :key="c" @click="updateColor(c)" :class="[c, 'w-6 h-6 rounded-full cursor-pointer border-2 transition', team.color === c ? 'border-gray-800 scale-110 shadow-sm' : 'border-transparent']" :title="c"></button>
                </div>
@@ -49,7 +49,7 @@
                <div class="flex flex-col gap-2">
                    <div class="flex flex-wrap gap-1">
                   <button v-for="i in icons" :key="i" @click="updateIcon(i)" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition', team.icon === i ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" :title="i">
-                    <component :is="LucideIcons[i]" class="w-4 h-4 text-gray-800"/>
+                    <component :is="(LucideIcons as any)[i]" class="w-4 h-4 text-gray-800"/>
                   </button>
                   <button @click="showCustomUrl = !showCustomUrl" :class="['w-7 h-7 rounded flex items-center justify-center cursor-pointer transition text-[9px] font-black text-gray-800 uppercase', isCustomIcon(team.icon) || showCustomUrl ? 'bg-gray-300 shadow-inner' : 'hover:bg-gray-200']" title="Custom URL">URL</button>
                  </div>

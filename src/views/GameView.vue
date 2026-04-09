@@ -4,7 +4,7 @@
     <!-- Print Header -->
     <div class="hidden print:hidden flex-col mb-1.5 items-center">
        <h1 class="text-lg font-black text-black tracking-tight uppercase">{{ game.name }} Game Plan</h1>
-       <p class="text-[10px] border-b border-gray-300 pb-1 mb-1.5 w-full text-center font-bold text-gray-500">{{ team.name }} • {{ team.matchType }} <span v-if="game.date">| {{ game.date }}</span></p>
+       <p class="text-[10px] border-b border-gray-300 pb-1 mb-1.5 w-full text-center font-bold text-gray-500">{{ team.name }} • {{ team.matchType }} <span v-if="game.date">| {{ formatDate(game.date) }}</span></p>
     </div>
 
     <!-- Dynamic Team Header -->
@@ -12,16 +12,16 @@
       <div class="flex items-center space-x-4">
         <div class="bg-white/20 p-1.5 rounded-xl backdrop-blur-sm border border-white/30 hidden sm:flex items-center justify-center w-14 h-14 shadow-inner overflow-hidden">
            <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-12 h-12 object-contain" />
-           <component v-else :is="LucideIcons[team.icon]" class="w-10 h-10 text-white"/>
+           <component v-else :is="(LucideIcons as any)[team.icon]" class="w-10 h-10 text-white"/>
         </div>
         <div>
           <h2 class="text-2xl font-black text-white flex items-center tracking-tight">
             {{ game.name }} 
-            <span v-if="game.date" class="text-white/80 font-bold text-xs ml-3 bg-black/20 px-2 py-1 rounded-md border border-white/10 uppercase tracking-widest">{{ game.date }}</span>
+            <span v-if="game.date" class="text-white/80 font-bold text-xs ml-3 bg-black/20 px-2 py-1 rounded-md border border-white/10 uppercase tracking-widest">{{ formatDate(game.date) }}</span>
           </h2>
           <p class="text-sm font-bold text-white/80 mt-1 capitalize tracking-wide flex items-center">
              <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-3 h-3 mr-1.5 sm:hidden object-contain" />
-             <component v-else :is="LucideIcons[team.icon]" class="w-3 h-3 mr-1.5 sm:hidden"/> {{ team.name }} • {{ team.matchType }}
+             <component v-else :is="(LucideIcons as any)[team.icon]" class="w-3 h-3 mr-1.5 sm:hidden"/> {{ team.name }} • {{ team.matchType }}
           </p>
         </div>
       </div>
@@ -41,7 +41,7 @@
         <div class="hidden print:flex flex-col w-[20%] shrink-0 pr-2 justify-center border-r print:border-gray-400">
            <h1 class="text-xl font-black text-black tracking-tight uppercase leading-none print:mb-1 print:text-sm">{{ game.name }}</h1>
            <p class="text-xs font-bold text-gray-800 uppercase print:text-[7px]">{{ team.name }}</p>
-           <p class="text-[10px] font-bold text-gray-600 mt-0.5 print:text-[6px]" v-if="game.date">{{ game.date }}</p>
+           <p class="text-[10px] font-bold text-gray-600 mt-0.5 print:text-[6px]" v-if="game.date">{{ formatDate(game.date) }}</p>
         </div>
         
         <div class="mb-5 bg-white p-5 rounded-xl border border-gray-200 shadow-sm print:hidden">
@@ -134,13 +134,13 @@
       <div class="flex-1 overflow-y-auto bg-gray-200/40 p-6 relative flex flex-col print:p-0 print:bg-transparent print:overflow-visible print:block print:h-auto print:min-h-0 print:w-full print:max-w-[95%] print:mx-auto print:mt-0">        
         <div v-if="game.lineups.length === 0" class="flex-1 flex flex-col items-center justify-center text-gray-400 text-sm font-bold border-2 border-dashed border-gray-300 rounded-3xl bg-white bg-opacity-60 m-4 py-16 shadow-sm print:hidden">
           <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="mb-4 opacity-30 w-16 h-16 object-contain" />
-           <component v-else :is="LucideIcons[team.icon]" class="mb-4 opacity-30 w-16 h-16 text-gray-400" />
+           <component v-else :is="(LucideIcons as any)[team.icon]" class="mb-4 opacity-30 w-16 h-16 text-gray-400" />
           No lineups added yet.<br>Create one using the {{ team.matchType }} form on the left.
         </div>
         
         <!-- Multi-Field Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6 items-start pb-12 print:grid-cols-4 print:gap-1 print:pb-0">
-          <div v-for="(lineup, i) in game.lineups" :key="lineup.id" class="flex flex-col print:break-inside-avoid">
+          <div v-for="lineup in game.lineups" :key="lineup.id" class="flex flex-col print:break-inside-avoid">
             <div class="flex justify-between items-center px-0.5 mb-1 print:mb-0 print:px-2 print:translate-y-3.5 print:translate-x-0 relative z-10 print:h-1">
               <div class="flex items-center">
                 <input
@@ -198,9 +198,10 @@ import { ref, computed, watchEffect } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppStore } from '../stores/appState';
 import { FORMATIONS } from '../utils/formations';
+import { formatDate } from '../utils/date';
 import type { Player, Lineup } from '../types';
 import FieldView from '../components/FieldView.vue';
-import { Trash2, Copy, Printer, GripVertical, Check, ArrowLeft, ChevronDown } from 'lucide-vue-next';
+import { Trash2, Copy, Printer, GripVertical, ArrowLeft, ChevronDown } from 'lucide-vue-next';
 import * as LucideIcons from 'lucide-vue-next';
 
 const route = useRoute();
