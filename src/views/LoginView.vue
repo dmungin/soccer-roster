@@ -90,11 +90,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { AlertCircle, Loader2 } from 'lucide-vue-next';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 
 const username = ref('');
@@ -112,7 +113,9 @@ async function handleSubmit() {
     } else {
       await authStore.login(username.value.trim(), password.value);
     }
-    router.push('/');
+    
+    const redirectPath = route.query.redirect as string;
+    router.push(redirectPath || '/');
   } catch (err: any) {
     error.value = err.message || 'Something went wrong';
   } finally {
