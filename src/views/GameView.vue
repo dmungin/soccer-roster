@@ -46,7 +46,7 @@
         <div class="flex flex-col gap-2 mb-4 print:hidden">
             <div class="flex justify-between items-center mb-0.5 xl:hidden">
                 <h3 class="font-black text-gray-400 uppercase tracking-widest text-[10px]">Add Lineup / Import</h3>
-                <button @click="showMobileControls = !showMobileControls" class="text-[10px] font-black uppercase text-blue-600 hover:text-blue-700 underline tracking-widest whitespace-nowrap">
+                <button @click.stop="showMobileControls = !showMobileControls" class="text-[10px] font-black uppercase text-blue-600 hover:text-blue-700 underline tracking-widest whitespace-nowrap">
                     {{ showMobileControls ? 'Hide' : 'Show' }}
                 </button>
             </div>
@@ -87,7 +87,7 @@
 
         <div class="flex justify-between items-center mb-2 print:hidden border-t sm:border-t-0 pt-3 sm:pt-0">
           <h3 class="font-black text-gray-400 uppercase tracking-widest text-[10px]">Game Roster & Playing Time</h3>
-          <button @click="showMobileRoster = !showMobileRoster" class="xl:hidden text-[10px] font-black uppercase text-blue-600 hover:text-blue-700 underline tracking-widest">
+          <button @click.stop="showMobileRoster = !showMobileRoster" class="xl:hidden text-[10px] font-black uppercase text-blue-600 hover:text-blue-700 underline tracking-widest">
             {{ showMobileRoster ? 'Hide' : 'Show' }}
           </button>
         </div>
@@ -100,16 +100,18 @@
                  @dragstart="onDragStart($event, p)"
                  @click.stop="handlePlayerClick(p.id)">
               <!-- Header (Collapsed) -->
-              <div :class="['px-3 py-2 flex items-center justify-between cursor-pointer transition', selectedPlayerId === p.id ? 'bg-blue-50 ring-1 ring-inset ring-blue-500/30' : 'hover:bg-gray-50']">
+              <div :class="['px-3 py-2 flex items-center justify-between cursor-pointer transition', selectedPlayerId === p.id ? 'bg-blue-600 text-white ring-2 ring-blue-600 z-10' : 'hover:bg-gray-50']">
                 <div class="flex items-center space-x-3">
                   <GripVertical class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-400 cursor-grab active:cursor-grabbing" title="Drag to field"/>
-                  <span :class="['font-bold text-sm truncate max-w-[140px]', selectedPlayerId === p.id ? 'text-blue-700' : 'text-gray-700']" :title="p.name">{{ p.name }}</span>
+                  <span :class="['font-bold text-sm truncate max-w-[140px]', selectedPlayerId === p.id ? 'text-white' : 'text-gray-700']" :title="p.name">{{ p.name }}</span>
                 </div>
                 <div class="flex items-center space-x-3">
                   <div class="w-[45px] text-right">
-                    <span class="font-black text-[11px]" :class="[getPlayPercentage(p.id) > 65 ? 'text-blue-600' : getPlayPercentage(p.id) > 30 ? 'text-indigo-700' : 'text-orange-500']">{{ getPlayPercentage(p.id) }}%</span>
+                    <span class="font-black text-[11px]" :class="selectedPlayerId === p.id ? 'text-white' : [getPlayPercentage(p.id) > 65 ? 'text-blue-600' : getPlayPercentage(p.id) > 30 ? 'text-indigo-700' : 'text-orange-500']">
+                      {{ getPlayPercentage(p.id) }}%
+                    </span>
                   </div>
-                  <ChevronDown class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': expandedPlayers.includes(p.id) }" @click.stop="toggleExpandedPlayer(p.id)" />
+                  <ChevronDown class="w-3.5 h-3.5" :class="[selectedPlayerId === p.id ? 'text-white' : 'text-gray-400', { 'rotate-180': expandedPlayers.includes(p.id) }]" @click.stop="toggleExpandedPlayer(p.id)" />
                 </div>
               </div>
               
@@ -211,7 +213,7 @@
                      draggable="true" @dragstart="onDragStart($event, p)"
                      @click.stop="handlePlayerClick(p.id)">
                    <!-- Screen: Badge -->
-                   <div :class="['rounded-none w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] shadow-sm print:hidden ring-1 ring-black/5 transition', 
+                   <div :class="['rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] shadow-sm print:hidden ring-1 ring-black/5 transition', 
                                selectedPlayerId === p.id ? 'bg-blue-600 text-white ring-blue-600 ring-2 z-10' : 'bg-gray-100 text-gray-500 group-hover:ring-blue-400 group-hover:bg-blue-50 group-hover:text-blue-700']">
                      BE
                    </div>

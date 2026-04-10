@@ -1,12 +1,12 @@
 <template>
   <div 
-    class="absolute w-8 h-8 sm:w-10 sm:h-10 -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center border-[1.5px] transition-all print:border-none print:shadow-none cursor-pointer"
+    class="absolute w-8 h-8 sm:w-10 sm:h-10 -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center transition-all print:border-none print:shadow-none cursor-pointer"
     :style="{ left: `${position.x}%`, top: `${position.y}%` }"
     :class="[
-       isHovered || (selectedPlayerId && !player) ? 'border-yellow-400 bg-white/30' : 'border-white/40 bg-black/30 print:!bg-transparent',
+       !player && (isHovered || (selectedPlayerId && !player)) ? 'border-[1.5px] border-yellow-400 bg-white/30' : '',
+       !player && !isHovered && !(selectedPlayerId && !player) ? 'border-[1.5px] border-white/40 bg-black/30 print:!bg-transparent' : '',
        isDuplicate ? 'ring-2 ring-red-500 shadow-[0_0_10px_rgba(239,68,68,1)] print:ring-red-500' : '',
-       player ? 'border-white/80 bg-white/10 print:!bg-transparent print:border-none' : '',
-       selectedPlayerId === player?.id ? 'ring-4 ring-blue-500 border-blue-500 z-50' : ''
+       selectedPlayerId === player?.id ? 'z-50' : ''
     ]"
     @dragover.prevent="onDragOver"
     @dragenter.prevent="isHovered = true"
@@ -17,10 +17,11 @@
     :draggable="true"
   >
     <div v-if="player" class="flex flex-col items-center justify-center w-full h-full relative group cursor-grab">
-      <div class="bg-white text-green-900 print:bg-transparent print:text-black print:w-auto print:h-auto print:leading-none print:mb-[1px] rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] print:text-[9px] shadow-sm print:shadow-none">
+      <div :class="['print:bg-transparent print:text-black print:w-auto print:h-auto print:leading-none print:mb-[1px] rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] print:text-[9px] shadow-sm print:shadow-none transition-colors border print:border-none', 
+                  selectedPlayerId === player.id ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-green-900 border-gray-800']">
         {{ position.label }}
       </div>
-      <div class="absolute -bottom-5 sm:-bottom-6 print:relative print:bottom-auto w-max px-1.5 py-0.5 bg-black/90 print:!bg-transparent print:text-black print:font-bold text-white text-[10px] sm:text-xs print:text-[8px] rounded pointer-events-none truncate max-w-[100px] shadow-sm print:shadow-none print:p-0 mt-0.5">
+      <div class="absolute -bottom-4 sm:-bottom-5 print:relative print:bottom-auto w-max px-1.5 py-0.5 bg-black/90 print:!bg-transparent print:text-black print:font-bold text-white text-[10px] sm:text-xs print:text-[8px] rounded pointer-events-none truncate max-w-[100px] shadow-sm print:shadow-none print:p-0 mt-0.5">
         {{ player.name }}
       </div>
       <button 
