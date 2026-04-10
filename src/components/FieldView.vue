@@ -34,8 +34,11 @@
       :position="pos"
       :player="getPlayer(pos.playerId)"
       :is-duplicate="isDuplicate(pos.playerId)"
+      :selected-player-id="selectedPlayerId"
       @assign="handleAssign(pos.id, $event)"
       @unassign="handleAssign(pos.id, null)"
+      @select-player="$emit('select-player', $event)"
+      @clear-selection="$emit('clear-selection')"
     />
   </div>
 </template>
@@ -46,7 +49,16 @@ import { useAppStore } from '../stores/appState';
 import PositionNode from './PositionNode.vue';
 import type { Lineup } from '../types';
 
-const props = defineProps<{ gameId: string, lineup: Lineup }>();
+const props = defineProps<{ 
+  gameId: string, 
+  lineup: Lineup,
+  selectedPlayerId: string | null 
+}>();
+
+const emit = defineEmits<{
+  (e: 'select-player', playerId: string): void;
+  (e: 'clear-selection'): void;
+}>();
 const store = useAppStore();
 
 const teamPlayers = computed(() => {

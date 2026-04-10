@@ -94,18 +94,22 @@
         <!-- SCREEN VIEW: Expandable List -->
         <div :class="['flex-1 overflow-y-auto print:hidden pb-4 transition-all duration-300', showMobileRoster ? 'block' : 'hidden xl:block']">
           <div class="border border-gray-200 rounded-none bg-white overflow-hidden divide-y divide-gray-100 shadow-sm">
-            <div v-for="p in team.players" :key="p.id" class="flex flex-col group transition" draggable="true" @dragstart="onDragStart($event, p)">
+            <div v-for="p in team.players" :key="p.id" 
+                 class="flex flex-col group transition" 
+                 draggable="true" 
+                 @dragstart="onDragStart($event, p)"
+                 @click="handlePlayerClick(p.id)">
               <!-- Header (Collapsed) -->
-              <div class="px-3 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition" @click="toggleExpandedPlayer(p.id)">
+              <div :class="['px-3 py-2 flex items-center justify-between cursor-pointer transition', selectedPlayerId === p.id ? 'bg-blue-50 ring-1 ring-inset ring-blue-500/30' : 'hover:bg-gray-50']">
                 <div class="flex items-center space-x-3">
                   <GripVertical class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-400 cursor-grab active:cursor-grabbing" title="Drag to field"/>
-                  <span class="font-bold text-gray-700 text-sm truncate max-w-[140px]" :title="p.name">{{ p.name }}</span>
+                  <span :class="['font-bold text-sm truncate max-w-[140px]', selectedPlayerId === p.id ? 'text-blue-700' : 'text-gray-700']" :title="p.name">{{ p.name }}</span>
                 </div>
                 <div class="flex items-center space-x-3">
                   <div class="w-[45px] text-right">
                     <span class="font-black text-[11px]" :class="[getPlayPercentage(p.id) > 65 ? 'text-blue-600' : getPlayPercentage(p.id) > 30 ? 'text-indigo-700' : 'text-orange-500']">{{ getPlayPercentage(p.id) }}%</span>
                   </div>
-                  <ChevronDown class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': expandedPlayers.includes(p.id) }" />
+                  <ChevronDown class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': expandedPlayers.includes(p.id) }" @click.stop="toggleExpandedPlayer(p.id)" />
                 </div>
               </div>
               
@@ -189,7 +193,13 @@
               </div>
             </div>
             <div class="w-full">
-               <FieldView :gameId="game.id" :lineup="lineup" />
+               <FieldView 
+                 :gameId="game.id" 
+                 :lineup="lineup" 
+                 :selected-player-id="selectedPlayerId"
+                 @select-player="selectedPlayerId = $event"
+                 @clear-selection="selectedPlayerId = null"
+               />
             </div>
 
             <!-- Bench Players -->
@@ -198,13 +208,16 @@
               <div class="flex flex-wrap gap-x-2.5 gap-y-2 print:gap-x-0.5 print:gap-y-0 print:whitespace-normal print:leading-[1.1]">
                 <div v-for="(p, index) in getBenchPlayers(lineup)" :key="p.id" 
                      class="flex flex-col items-center group cursor-grab active:cursor-grabbing print:flex-row print:items-center print:inline-flex"
-                     draggable="true" @dragstart="onDragStart($event, p)">
+                     draggable="true" @dragstart="onDragStart($event, p)"
+                     @click.stop="handlePlayerClick(p.id)">
                    <!-- Screen: Badge -->
-                   <div class="bg-gray-100 text-gray-500 rounded-none w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] shadow-sm print:hidden ring-1 ring-black/5 group-hover:ring-blue-400 group-hover:bg-blue-50 group-hover:text-blue-700 transition">
+                   <div :class="['rounded-none w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] shadow-sm print:hidden ring-1 ring-black/5 transition', 
+                               selectedPlayerId === p.id ? 'bg-blue-600 text-white ring-blue-600 ring-2 z-10' : 'bg-gray-100 text-gray-500 group-hover:ring-blue-400 group-hover:bg-blue-50 group-hover:text-blue-700']">
                      BE
                    </div>
                    <!-- Text -->
-                   <span class="text-[9px] sm:text-[10px] font-bold text-gray-500 mt-1 print:mt-0 print:text-[6px] print:text-black group-hover:text-gray-800 transition">
+                   <span :class="['text-[9px] sm:text-[10px] font-bold mt-1 print:mt-0 print:text-[6px] print:text-black transition', 
+                               selectedPlayerId === p.id ? 'text-blue-700' : 'text-gray-500 group-hover:text-gray-800']">
                      {{ p.name }}<span v-if="index !== getBenchPlayers(lineup).length - 1" class="hidden print:inline mr-0.5">,</span>
                    </span>
                 </div>
@@ -246,6 +259,15 @@ const newLineupName = ref('');
 const selectedFormationId = ref('');
 const showMobileRoster = ref(false);
 const showMobileControls = ref(false);
+const selectedPlayerId = ref<string | null>(null);
+
+function handlePlayerClick(playerId: string) {
+  if (selectedPlayerId.value === playerId) {
+    selectedPlayerId.value = null; // Deselect
+  } else {
+    selectedPlayerId.value = playerId;
+  }
+}
 
 const availableFormations = computed(() => {
   if (!team.value) return [];

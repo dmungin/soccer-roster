@@ -1,17 +1,19 @@
 <template>
   <div 
-    class="absolute w-8 h-8 sm:w-10 sm:h-10 -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center border-[1.5px] transition-all print:border-none print:shadow-none"
+    class="absolute w-8 h-8 sm:w-10 sm:h-10 -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center border-[1.5px] transition-all print:border-none print:shadow-none cursor-pointer"
     :style="{ left: `${position.x}%`, top: `${position.y}%` }"
     :class="[
-      isHovered ? 'border-yellow-400 bg-white/30' : 'border-white/40 bg-black/30 print:!bg-transparent',
-      isDuplicate ? 'ring-2 ring-red-500 shadow-[0_0_10px_rgba(239,68,68,1)] print:ring-red-500' : '',
-      player ? 'border-white/80 bg-white/10 print:!bg-transparent print:border-none' : ''
+       isHovered || (selectedPlayerId && !player) ? 'border-yellow-400 bg-white/30' : 'border-white/40 bg-black/30 print:!bg-transparent',
+       isDuplicate ? 'ring-2 ring-red-500 shadow-[0_0_10px_rgba(239,68,68,1)] print:ring-red-500' : '',
+       player ? 'border-white/80 bg-white/10 print:!bg-transparent print:border-none' : '',
+       selectedPlayerId === player?.id ? 'ring-4 ring-blue-500 border-blue-500 z-50' : ''
     ]"
     @dragover.prevent="onDragOver"
     @dragenter.prevent="isHovered = true"
     @dragleave.prevent="isHovered = false"
     @drop.prevent="onDrop"
     @dragstart="onDragStart"
+    @click.stop="handleClick"
     :draggable="true"
   >
     <div v-if="player" class="flex flex-col items-center justify-center w-full h-full relative group cursor-grab">
@@ -23,7 +25,7 @@
       </div>
       <button 
         @click.stop="$emit('unassign')" 
-        class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition shadow print-hide"
+        class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition shadow print-hide hidden md:flex"
         title="Unassign"
       >
         <X class="w-3 h-3" />
@@ -44,14 +46,34 @@ const props = defineProps<{
   position: LineupPosition;
   player: Player | null;
   isDuplicate: boolean;
+  selectedPlayerId: string | null;
 }>();
 
 const emit = defineEmits<{
   (e: 'assign', playerId: string): void;
   (e: 'unassign'): void;
+  (e: 'select-player', playerId: string): void;
+  (e: 'clear-selection'): void;
 }>();
 
 const isHovered = ref(false);
+
+function handleClick() {
+  if (props.selectedPlayerId) {
+    if (props.player && props.selectedPlayerId === props.player.id) {
+       // Tap already-selected player on field again -> Unassign/Bench
+       emit('unassign');
+       emit('clear-selection');
+    } else {
+       // Place or Swap
+       emit('assign', props.selectedPlayerId);
+       emit('clear-selection');
+    }
+  } else if (props.player) {
+    // Select field player
+    emit('select-player', props.player.id);
+  }
+}
 
 function onDragOver(e: DragEvent) {
   if (e.dataTransfer) {
