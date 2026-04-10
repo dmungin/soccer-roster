@@ -6,34 +6,35 @@
        <h1 class="text-lg font-black text-black tracking-tight uppercase">{{ game.name }} Game Plan</h1>
        <p class="text-[10px] border-b border-gray-300 pb-1 mb-1.5 w-full text-center font-bold text-gray-500">{{ team.name }} • {{ team.matchType }} <span v-if="game.date">| {{ formatDate(game.date) }}</span></p>
     </div>    <!-- Dynamic Team Header -->
-    <div :class="['px-6 py-5 flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 shrink-0 z-20 relative shadow-md print:hidden', team.color]">
+    <div :class="['px-3 py-2 sm:px-6 sm:py-4 flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 shrink-0 z-20 relative shadow-md print:hidden', team.color]">
       <div class="flex items-center space-x-4">
         <div class="bg-white/20 p-1.5 rounded-none backdrop-blur-sm border border-white/30 hidden sm:flex items-center justify-center w-14 h-14 shadow-inner overflow-hidden">
            <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-12 h-12 object-contain" />
            <component v-else :is="(LucideIcons as any)[team.icon]" class="w-10 h-10 text-white"/>
         </div>
         <div>
-          <h2 class="text-2xl font-black text-white flex items-center tracking-tight">
+          <h2 class="text-lg sm:text-2xl font-black text-white flex items-center tracking-tight leading-tight">
             {{ game.name }} 
-            <span v-if="game.date" class="text-white/80 font-bold text-xs ml-3 bg-black/20 px-2 py-1 rounded-none border border-white/10 uppercase tracking-widest">{{ formatDate(game.date) }}</span>
+            <span v-if="game.date" class="text-white/80 font-bold text-[9px] sm:text-xs ml-2 sm:ml-3 bg-black/20 px-1.5 sm:px-2 py-0.5 rounded-none border border-white/10 uppercase tracking-widest whitespace-nowrap">{{ formatDate(game.date) }}</span>
           </h2>
-          <p class="text-sm font-bold text-white/80 mt-1 capitalize tracking-wide flex items-center">
-             <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-3 h-3 mr-1.5 sm:hidden object-contain" />
-             <component v-else :is="(LucideIcons as any)[team.icon]" class="w-3 h-3 mr-1.5 sm:hidden"/> {{ team.name }} • {{ team.matchType }}
+          <p class="text-[10px] sm:text-sm font-bold text-white/80 mt-0.5 sm:mt-1 capitalize tracking-wide flex items-center">
+             <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-2.5 h-2.5 mr-1 sm:hidden object-contain" />
+             <component v-else :is="(LucideIcons as any)[team.icon]" class="w-2.5 h-2.5 mr-1 sm:hidden"/> {{ team.name }} • {{ team.matchType }}
           </p>
         </div>
       </div>
-      <div class="flex space-x-3 w-full md:w-auto">
-        <router-link to="/" class="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white px-3 py-2 border border-white/20 rounded-none transition shadow-sm backdrop-blur-sm" title="Back to Dashboard">
-          <ArrowLeft class="w-5 h-5"/>
+      <div class="flex space-x-2 w-full md:w-auto">
+        <router-link to="/" class="flex flex-1 md:flex-none items-center justify-center bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 border border-white/20 rounded-none transition shadow-sm backdrop-blur-sm" title="Back to Dashboard">
+          <ArrowLeft class="w-4 h-4 md:w-5 md:h-5"/>
+           <span class="md:hidden ml-2 text-xs font-bold uppercase tracking-widest">Dashboard</span>
         </router-link>
-        <button @click="triggerPrint" class="bg-white text-gray-900 px-4 py-2 rounded-none font-bold text-sm flex justify-center items-center hover:bg-gray-100 transition shadow-sm flex-1 md:flex-none"><Printer class="w-4 h-4 mr-2"/> Print</button>
+        <button @click="triggerPrint" class="hidden md:flex bg-white text-gray-900 px-4 py-2 rounded-none font-bold text-sm justify-center items-center hover:bg-gray-100 transition shadow-sm md:flex-none"><Printer class="w-4 h-4 mr-2"/> Print</button>
       </div>
     </div>
     
-    <div class="flex flex-1 overflow-hidden flex-col xl:flex-row relative print:flex-col print:items-stretch print:gap-0 print:overflow-visible">
+    <div class="flex flex-1 overflow-hidden flex-col xl:flex-row relative print:flex-col print:items-stretch print:gap-0 print:overflow-visible" @click="selectedPlayerId = null">
       <!-- Left side: Summary Table -->
-      <div class="xl:w-[400px] 2xl:w-[480px] xl:border-r border-gray-200 flex flex-col p-5 bg-gray-50 overflow-y-auto shrink-0 shadow-[2px_0_10px_-5px_rgba(0,0,0,0.08)] xl:shadow-none z-10 border-b xl:border-b-0 max-h-[45vh] xl:max-h-none print:w-full print:flex-row print:items-center print:border-none print:shadow-none print:bg-transparent print:p-0 print:mb-0 print:overflow-visible print:flex print:max-h-none print:gap-4 print:max-w-[95%] print:mx-auto">
+      <div class="xl:w-[400px] 2xl:w-[480px] xl:border-r border-gray-200 flex flex-col p-4 sm:p-5 bg-gray-50 overflow-y-auto shrink-0 shadow-[2px_0_10px_-5px_rgba(0,0,0,0.08)] xl:shadow-none z-10 border-b xl:border-b-0 max-h-[50vh] xl:max-h-none print:w-full print:flex-row print:items-center print:border-none print:shadow-none print:bg-transparent print:p-0 print:mb-0 print:overflow-visible print:flex print:max-h-none print:gap-4 print:max-w-[95%] print:mx-auto">
         
         <!-- NEW PRINT-ONLY HEADER SIDE-BY-SIDE WITH TABLE -->
         <div class="hidden print:flex flex-col w-[20%] shrink-0 pr-2 justify-center border-r print:border-gray-400">
@@ -42,58 +43,75 @@
            <p class="text-[10px] font-bold text-gray-600 mt-0.5 print:text-[6px]" v-if="game.date">{{ formatDate(game.date) }}</p>
         </div>
         
-        <div class="mb-4 bg-white p-3 border border-gray-200 shadow-sm print:hidden rounded-none space-y-3">
-          <!-- Create Lineup Row -->
-          <div class="flex flex-col gap-1.5">
-            <div class="flex items-center justify-between px-0.5">
-              <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">New Lineup</label>
+        <div class="flex flex-col gap-2 mb-4 print:hidden">
+            <div class="flex justify-between items-center mb-0.5 xl:hidden">
+                <h3 class="font-black text-gray-400 uppercase tracking-widest text-[10px]">Add Lineup / Import</h3>
+                <button @click.stop="showMobileControls = !showMobileControls" class="text-[10px] font-black uppercase text-blue-600 hover:text-blue-700 underline tracking-widest whitespace-nowrap">
+                    {{ showMobileControls ? 'Hide' : 'Show' }}
+                </button>
             </div>
-            <div class="flex gap-1.5">
-              <input v-model="newLineupName" placeholder="e.g. Q1" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs font-bold w-20 shrink-0" />
-              <select v-model="selectedFormationId" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs bg-white font-bold flex-1 min-w-0">
-                <option v-for="f in availableFormations" :key="f.id" :value="f.id">{{ f.name }}</option>
-              </select>
-              <button @click="createLineup" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-none font-black disabled:opacity-50 transition text-[10px] uppercase tracking-wider shadow-sm" :disabled="!newLineupName.trim()">
-                Add
-              </button>
-            </div>
-          </div>
+            <div :class="['bg-white p-3 border border-gray-200 shadow-sm rounded-none space-y-3 transition-all duration-300', showMobileControls ? 'block' : 'hidden xl:block']">
+                <!-- Create Lineup Row -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between px-0.5">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">New Lineup</label>
+                    </div>
+                    <div class="flex gap-1.5">
+                    <input v-model="newLineupName" placeholder="e.g. Q1" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs font-bold w-16 sm:w-20 shrink-0" />
+                    <select v-model="selectedFormationId" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs bg-white font-bold flex-1 min-w-0">
+                        <option v-for="f in availableFormations" :key="f.id" :value="f.id">{{ f.name }}</option>
+                    </select>
+                    <button @click="createLineup" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-none font-black disabled:opacity-50 transition text-[10px] uppercase tracking-wider shadow-sm" :disabled="!newLineupName.trim()">
+                        Add
+                    </button>
+                    </div>
+                </div>
 
-          <!-- Copy Lineup Row -->
-          <div v-if="teamOtherGames.length > 0" class="pt-2 border-t border-gray-100 space-y-1.5">
-            <div class="flex items-center justify-between px-0.5">
-              <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Quick Import</label>
+                <!-- Copy Lineup Row -->
+                <div v-if="teamOtherGames.length > 0" class="pt-2 border-t border-gray-100 space-y-1.5">
+                    <div class="flex items-center justify-between px-0.5">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Quick Import</label>
+                    </div>
+                    <div class="flex gap-1.5">
+                    <select v-model="selectedGameToCopyId" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs bg-white font-bold flex-1 min-w-0">
+                        <option disabled value="">Select prior game...</option>
+                        <option v-for="g in teamOtherGames" :key="g.id" :value="g.id">{{ g.name }}</option>
+                    </select>
+                    <button @click="copyFromGame" class="bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-300 px-3 py-1.5 rounded-none font-black disabled:opacity-50 transition text-[10px] uppercase tracking-wider shadow-sm" :disabled="!selectedGameToCopyId">
+                        Copy
+                    </button>
+                    </div>
+                </div>
             </div>
-            <div class="flex gap-1.5">
-              <select v-model="selectedGameToCopyId" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs bg-white font-bold flex-1 min-w-0">
-                <option disabled value="">Select prior game...</option>
-                <option v-for="g in teamOtherGames" :key="g.id" :value="g.id">{{ g.name }}</option>
-              </select>
-              <button @click="copyFromGame" class="bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-300 px-3 py-1.5 rounded-none font-black disabled:opacity-50 transition text-[10px] uppercase tracking-wider shadow-sm" :disabled="!selectedGameToCopyId">
-                 Copy
-              </button>
-            </div>
-          </div>
         </div>
 
-        <div class="flex justify-between items-end mb-1.5 print:hidden">
+        <div class="flex justify-between items-center mb-2 print:hidden border-t sm:border-t-0 pt-3 sm:pt-0">
           <h3 class="font-black text-gray-400 uppercase tracking-widest text-[10px]">Game Roster & Playing Time</h3>
+          <button @click.stop="showMobileRoster = !showMobileRoster" class="xl:hidden text-[10px] font-black uppercase text-blue-600 hover:text-blue-700 underline tracking-widest">
+            {{ showMobileRoster ? 'Hide' : 'Show' }}
+          </button>
         </div>
         <!-- SCREEN VIEW: Expandable List -->
-        <div class="flex-1 overflow-y-auto print:hidden pb-4">
+        <div :class="['flex-1 overflow-y-auto print:hidden pb-4 transition-all duration-300', showMobileRoster ? 'block' : 'hidden xl:block']">
           <div class="border border-gray-200 rounded-none bg-white overflow-hidden divide-y divide-gray-100 shadow-sm">
-            <div v-for="p in team.players" :key="p.id" class="flex flex-col group transition" draggable="true" @dragstart="onDragStart($event, p)">
+            <div v-for="p in team.players" :key="p.id" 
+                 class="flex flex-col group transition" 
+                 draggable="true" 
+                 @dragstart="onDragStart($event, p)"
+                 @click.stop="handlePlayerClick(p.id)">
               <!-- Header (Collapsed) -->
-              <div class="px-3 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition" @click="toggleExpandedPlayer(p.id)">
+              <div :class="['px-3 py-2 flex items-center justify-between cursor-pointer transition', selectedPlayerId === p.id ? 'bg-blue-600 text-white ring-2 ring-blue-600 z-10' : 'hover:bg-gray-50']">
                 <div class="flex items-center space-x-3">
                   <GripVertical class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-400 cursor-grab active:cursor-grabbing" title="Drag to field"/>
-                  <span class="font-bold text-gray-700 text-sm truncate max-w-[140px]" :title="p.name">{{ p.name }}</span>
+                  <span :class="['font-bold text-sm truncate max-w-[140px]', selectedPlayerId === p.id ? 'text-white' : 'text-gray-700']" :title="p.name">{{ p.name }}</span>
                 </div>
                 <div class="flex items-center space-x-3">
                   <div class="w-[45px] text-right">
-                    <span class="font-black text-[11px]" :class="[getPlayPercentage(p.id) > 65 ? 'text-blue-600' : getPlayPercentage(p.id) > 30 ? 'text-indigo-700' : 'text-orange-500']">{{ getPlayPercentage(p.id) }}%</span>
+                    <span class="font-black text-[11px]" :class="selectedPlayerId === p.id ? 'text-white' : [getPlayPercentage(p.id) > 65 ? 'text-blue-600' : getPlayPercentage(p.id) > 30 ? 'text-indigo-700' : 'text-orange-500']">
+                      {{ getPlayPercentage(p.id) }}%
+                    </span>
                   </div>
-                  <ChevronDown class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': expandedPlayers.includes(p.id) }" />
+                  <ChevronDown class="w-3.5 h-3.5" :class="[selectedPlayerId === p.id ? 'text-white' : 'text-gray-400', { 'rotate-180': expandedPlayers.includes(p.id) }]" @click.stop="toggleExpandedPlayer(p.id)" />
                 </div>
               </div>
               
@@ -151,7 +169,7 @@
       </div>
 
       <!-- Right Side: Field Grids -->
-      <div class="flex-1 overflow-y-auto bg-gray-200/40 p-6 relative flex flex-col print:p-0 print:bg-transparent print:overflow-visible print:block print:h-auto print:min-h-0 print:w-full print:max-w-[95%] print:mx-auto print:mt-0">        
+      <div class="flex-1 overflow-y-auto bg-gray-200/40 p-4 sm:p-6 relative flex flex-col print:p-0 print:bg-transparent print:overflow-visible print:block print:h-auto print:min-h-0 print:w-full print:max-w-[95%] print:mx-auto print:mt-0">        
         <div v-if="game.lineups.length === 0" class="flex-1 flex flex-col items-center justify-center text-gray-400 text-sm font-bold border-2 border-dashed border-gray-300 rounded-none bg-white bg-opacity-60 m-4 py-16 shadow-sm print:hidden">
           <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="mb-4 opacity-30 w-16 h-16 object-contain" />
            <component v-else :is="(LucideIcons as any)[team.icon]" class="mb-4 opacity-30 w-16 h-16 text-gray-400" />
@@ -177,7 +195,13 @@
               </div>
             </div>
             <div class="w-full">
-               <FieldView :gameId="game.id" :lineup="lineup" />
+               <FieldView 
+                 :gameId="game.id" 
+                 :lineup="lineup" 
+                 :selected-player-id="selectedPlayerId"
+                 @select-player="selectedPlayerId = $event"
+                 @clear-selection="selectedPlayerId = null"
+               />
             </div>
 
             <!-- Bench Players -->
@@ -186,13 +210,16 @@
               <div class="flex flex-wrap gap-x-2.5 gap-y-2 print:gap-x-0.5 print:gap-y-0 print:whitespace-normal print:leading-[1.1]">
                 <div v-for="(p, index) in getBenchPlayers(lineup)" :key="p.id" 
                      class="flex flex-col items-center group cursor-grab active:cursor-grabbing print:flex-row print:items-center print:inline-flex"
-                     draggable="true" @dragstart="onDragStart($event, p)">
+                     draggable="true" @dragstart="onDragStart($event, p)"
+                     @click.stop="handlePlayerClick(p.id)">
                    <!-- Screen: Badge -->
-                   <div class="bg-gray-100 text-gray-500 rounded-none w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] shadow-sm print:hidden ring-1 ring-black/5 group-hover:ring-blue-400 group-hover:bg-blue-50 group-hover:text-blue-700 transition">
+                   <div :class="['rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center font-bold text-[10px] sm:text-[11px] shadow-sm print:hidden ring-1 ring-black/5 transition', 
+                               selectedPlayerId === p.id ? 'bg-blue-600 text-white ring-blue-600 ring-2 z-10' : 'bg-gray-100 text-gray-500 group-hover:ring-blue-400 group-hover:bg-blue-50 group-hover:text-blue-700']">
                      BE
                    </div>
                    <!-- Text -->
-                   <span class="text-[9px] sm:text-[10px] font-bold text-gray-500 mt-1 print:mt-0 print:text-[6px] print:text-black group-hover:text-gray-800 transition">
+                   <span :class="['text-[9px] sm:text-[10px] font-bold mt-1 print:mt-0 print:text-[6px] print:text-black transition', 
+                               selectedPlayerId === p.id ? 'text-blue-700' : 'text-gray-500 group-hover:text-gray-800']">
                      {{ p.name }}<span v-if="index !== getBenchPlayers(lineup).length - 1" class="hidden print:inline mr-0.5">,</span>
                    </span>
                 </div>
@@ -232,6 +259,17 @@ const team = computed(() => game.value ? store.getTeam(game.value.teamId) : unde
 
 const newLineupName = ref('');
 const selectedFormationId = ref('');
+const showMobileRoster = ref(false);
+const showMobileControls = ref(false);
+const selectedPlayerId = ref<string | null>(null);
+
+function handlePlayerClick(playerId: string) {
+  if (selectedPlayerId.value === playerId) {
+    selectedPlayerId.value = null; // Deselect
+  } else {
+    selectedPlayerId.value = playerId;
+  }
+}
 
 const availableFormations = computed(() => {
   if (!team.value) return [];
