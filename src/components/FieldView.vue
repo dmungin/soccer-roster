@@ -4,6 +4,7 @@
     class="w-full relative select-none aspect-[3/4] print:aspect-[4/5]"
     @dragover.prevent="onFieldDragOver"
     @drop="onFieldDrop"
+    @click="$emit('clear-selection')"
   >
     
     <!-- Field Graphic with overflow hidden for pitch lines -->

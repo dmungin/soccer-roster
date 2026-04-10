@@ -32,7 +32,7 @@
       </div>
     </div>
     
-    <div class="flex flex-1 overflow-hidden flex-col xl:flex-row relative print:flex-col print:items-stretch print:gap-0 print:overflow-visible">
+    <div class="flex flex-1 overflow-hidden flex-col xl:flex-row relative print:flex-col print:items-stretch print:gap-0 print:overflow-visible" @click="selectedPlayerId = null">
       <!-- Left side: Summary Table -->
       <div class="xl:w-[400px] 2xl:w-[480px] xl:border-r border-gray-200 flex flex-col p-4 sm:p-5 bg-gray-50 overflow-y-auto shrink-0 shadow-[2px_0_10px_-5px_rgba(0,0,0,0.08)] xl:shadow-none z-10 border-b xl:border-b-0 max-h-[50vh] xl:max-h-none print:w-full print:flex-row print:items-center print:border-none print:shadow-none print:bg-transparent print:p-0 print:mb-0 print:overflow-visible print:flex print:max-h-none print:gap-4 print:max-w-[95%] print:mx-auto">
         
@@ -98,7 +98,7 @@
                  class="flex flex-col group transition" 
                  draggable="true" 
                  @dragstart="onDragStart($event, p)"
-                 @click="handlePlayerClick(p.id)">
+                 @click.stop="handlePlayerClick(p.id)">
               <!-- Header (Collapsed) -->
               <div :class="['px-3 py-2 flex items-center justify-between cursor-pointer transition', selectedPlayerId === p.id ? 'bg-blue-50 ring-1 ring-inset ring-blue-500/30' : 'hover:bg-gray-50']">
                 <div class="flex items-center space-x-3">
