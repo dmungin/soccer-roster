@@ -38,7 +38,7 @@ test.describe('Authentication', () => {
 
   test('redirects unauthenticated users to login', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL(/\/login\?redirect=(%2F|\/)/);
   });
 
   test('initial setup creates admin and redirects to home', async ({ page }) => {
