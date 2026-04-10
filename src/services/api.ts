@@ -32,13 +32,6 @@ async function request<T = unknown>(path: string, options: ApiOptions = {}): Pro
   if (!response.ok) {
     const data = await response.json().catch(() => ({ error: 'Request failed' }));
 
-    if (response.status === 401) {
-      // Redirect to login on auth failure (unless already on login page)
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
-
     throw new ApiError(data.error || 'Request failed', response.status);
   }
 

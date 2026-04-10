@@ -51,16 +51,17 @@ router.beforeEach(async (to) => {
 
   // Allow access to login page
   if (to.meta.public) {
-    // If authenticated and trying to go to login, redirect home
+    // If authenticated and trying to go to login, redirect to intended destination or home
     if (authStore.isAuthenticated) {
-      return { name: 'home' }
+      const redirectPath = to.query.redirect as string
+      return redirectPath || { name: 'home' }
     }
     return true
   }
 
   // Redirect unauthenticated users to login
   if (!authStore.isAuthenticated) {
-    return { name: 'login' }
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
 
   // Redirect non-admins away from admin-only routes
