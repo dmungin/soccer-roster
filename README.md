@@ -20,6 +20,24 @@ A self-hostable soccer team roster and tactical planning web application. Manage
 - **Persistent storage** — All data stored in SQLite via `better-sqlite3`
 - **Docker-ready** — Single container with a persistent `/data` volume for the database
 
+## Screens
+
+### Home
+<img width="1275" height="1211" alt="2026-05-09__1634-37" src="https://github.com/user-attachments/assets/b6afecb6-dd8e-49cb-bf30-312bab0700ba" />
+
+### Create Team
+<img width="1275" height="1211" alt="2026-05-09__1636-59" src="https://github.com/user-attachments/assets/828212fd-24da-4823-badd-a83ea5a9493b" />
+
+### Create Custom Formation
+<img width="2491" height="1248" alt="2026-05-09__1640-40" src="https://github.com/user-attachments/assets/af7ce249-f4d5-4ec0-bcb0-2f285e57ff98" />
+
+### Set Lineups
+<img width="2491" height="1248" alt="2026-05-09__1642-37" src="https://github.com/user-attachments/assets/cc282bd0-7a1b-4659-bb83-4ffb4783092c" />
+
+
+### Print View
+<img width="1052" height="817" alt="2026-05-09__1643-04" src="https://github.com/user-attachments/assets/b23490df-5de8-4788-a50c-f3b2d0b7a716" />
+
 ---
 
 ## Tech Stack
