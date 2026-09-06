@@ -307,7 +307,8 @@ watchEffect(() => {
 
 function createLineup() {
   if (!game.value || !newLineupName.value.trim()) return;
-  const formation = FORMATIONS.find(f => f.id === selectedFormationId.value);
+  const formation = availableFormations.value.find(f => f.id === selectedFormationId.value)
+    || [...FORMATIONS, ...store.customFormations].find(f => f.id === selectedFormationId.value);
   if (formation) {
     store.addLineupToGame(game.value.id, newLineupName.value.trim(), formation);
     newLineupName.value = '';
