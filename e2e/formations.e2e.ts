@@ -116,6 +116,41 @@ test.describe('Custom Formations', () => {
     await expect(page.getByRole('button', { name: 'Save Formation' })).toBeDisabled();
   });
 
+  test('can use a custom formation when adding a lineup to a game', async ({ page }) => {
+    // 1. Create a 7v7 team
+    const teamsSection = page.locator('section', { hasText: 'Teams' }).first();
+    await teamsSection.locator('input[placeholder="Team Name..."]').fill('Custom 7s');
+    await teamsSection.locator('select').first().selectOption('7v7');
+    await teamsSection.getByRole('button', { name: 'Create Team' }).click();
+    await expect(teamsSection.locator('li', { hasText: 'Custom 7s' })).toBeVisible();
+
+    // 2. Schedule a game for this team
+    const gamesSection = page.locator('section', { hasText: 'Scheduled Games' }).first();
+    const teamSelect = gamesSection.locator('select');
+    await teamSelect.selectOption({ label: 'Custom 7s (7v7)' });
+    await gamesSection.locator('input[placeholder*="Game Name"]').fill('Custom Match');
+    await gamesSection.getByRole('button', { name: 'Schedule Game', exact: true }).click();
+    await expect(gamesSection.locator('li', { hasText: 'Custom Match' })).toBeVisible();
+
+    // 3. Open game
+    const gameRow = gamesSection.locator('li', { hasText: 'Custom Match' });
+    await gameRow.getByRole('link', { name: 'Open Game' }).click();
+    await expect(page.getByText('Custom Match').first()).toBeVisible();
+
+    // 4. Select the custom formation in lineup creation
+    const formationSelect = page.locator('select').first();
+    await formationSelect.selectOption({ label: 'My Custom Formation' });
+
+    // 5. Fill lineup name and click Add
+    await page.fill('input[placeholder*="e.g. Q1"]', 'Custom Q1');
+    await page.getByRole('button', { name: 'Add' }).click();
+
+    // 6. Verify the lineup is created and displayed
+    const lineupInput = page.locator('input[title="Edit Lineup Name"]');
+    await expect(lineupInput).toBeVisible();
+    await expect(lineupInput).toHaveValue('Custom Q1');
+  });
+
   test('can preview and delete a formation', async ({ page }) => {
     // We expect "My Custom Formation" to exist from the previous test (since we don't wipe between tests in a file)
     // Actually, workers=1 ensures sequentiality.
