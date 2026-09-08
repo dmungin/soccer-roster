@@ -31,6 +31,7 @@ db.exec(`
     icon TEXT NOT NULL,
     match_type TEXT NOT NULL,
     default_formation_id TEXT NOT NULL,
+    quarter_minutes INTEGER NOT NULL DEFAULT 10,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   );
@@ -81,6 +82,41 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
   );
+
+  CREATE TABLE IF NOT EXISTS game_events (
+    id TEXT PRIMARY KEY,
+    game_id TEXT NOT NULL,
+    type TEXT NOT NULL,
+    minute INTEGER NOT NULL DEFAULT 0,
+    period_index INTEGER NOT NULL DEFAULT 1,
+    shift TEXT,
+    period_time_seconds INTEGER NOT NULL DEFAULT 0,
+    player_id TEXT,
+    assist_player_id TEXT,
+    notes TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE SET NULL,
+    FOREIGN KEY (assist_player_id) REFERENCES players(id) ON DELETE SET NULL
+  );
 `);
+
+// Safe migrations for newly added columns
+function ensureColumn(table, column, def) {
+  const info = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!info.some(col => col.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${def}`);
+  }
+}
+
+ensureColumn('games', 'status', "TEXT NOT NULL DEFAULT 'scheduled'");
+ensureColumn('games', 'score_us', "INTEGER NOT NULL DEFAULT 0");
+ensureColumn('games', 'score_them', "INTEGER NOT NULL DEFAULT 0");
+ensureColumn('games', 'game_config', "TEXT");
+
+ensureColumn('teams', 'quarter_minutes', "INTEGER NOT NULL DEFAULT 10");
+
+ensureColumn('lineups', 'period', "INTEGER");
+ensureColumn('lineups', 'shift', "TEXT");
 
 export default db;

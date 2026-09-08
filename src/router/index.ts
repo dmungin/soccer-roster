@@ -28,6 +28,11 @@ const router = createRouter({
       component: () => import('../views/GameView.vue')
     },
     {
+      path: '/game/:id/live',
+      name: 'live-game',
+      component: () => import('../views/LiveGameView.vue')
+    },
+    {
       path: '/builder',
       name: 'formation-builder',
       component: () => import('../views/FormationBuilderView.vue')

@@ -1,6 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref } from 'vue';
-import type { Team, Game, Formation, FormationType, PositionDef } from '../types';
+import type { Team, Game, Formation, FormationType, PositionDef, GameStatus, GameConfig, GameEvent } from '../types';
 import { api } from '../services/api';
 
 export const useAppStore = defineStore('app', () => {
@@ -43,8 +43,8 @@ export const useAppStore = defineStore('app', () => {
   }
 
   // --- Team Actions ---
-  async function addTeam(name: string, color: string, icon: string, matchType: string, defaultFormationId: string) {
-    const data = await api.post<{ team: Team }>('/teams', { name, color, icon, matchType, defaultFormationId });
+  async function addTeam(name: string, color: string, icon: string, matchType: string, defaultFormationId: string, quarterMinutes?: number) {
+    const data = await api.post<{ team: Team }>('/teams', { name, color, icon, matchType, defaultFormationId, quarterMinutes });
     teams.value.unshift(data.team);
     return data.team;
   }
@@ -69,6 +69,12 @@ export const useAppStore = defineStore('app', () => {
 
   async function updateTeamColor(teamId: string, color: string) {
     const data = await api.put<{ team: Team }>(`/teams/${teamId}`, { color });
+    const idx = teams.value.findIndex(t => t.id === teamId);
+    if (idx !== -1) teams.value[idx] = data.team;
+  }
+
+  async function updateTeamQuarterMinutes(teamId: string, quarterMinutes: number) {
+    const data = await api.put<{ team: Team }>(`/teams/${teamId}`, { quarterMinutes });
     const idx = teams.value.findIndex(t => t.id === teamId);
     if (idx !== -1) teams.value[idx] = data.team;
   }
@@ -115,7 +121,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   // --- Lineup Actions ---
-  async function addLineupToGame(gameId: string, name: string, formation: Formation) {
+  async function addLineupToGame(gameId: string, name: string, formation: Formation, period?: number, shift?: 'A' | 'B' | 'full') {
     const positions = formation.positions.map(p => ({
       id: crypto.randomUUID(),
       label: p.label,
@@ -128,11 +134,52 @@ export const useAppStore = defineStore('app', () => {
       name,
       formationId: formation.id,
       positions,
+      period,
+      shift,
     });
 
     const idx = games.value.findIndex(g => g.id === gameId);
     if (idx !== -1) games.value[idx] = data.game;
     return data.game.lineups[data.game.lineups.length - 1];
+  }
+
+  async function scaffoldGameLineups(gameId: string, type: '8-shifts' | '4-quarters', formation: Formation) {
+    const templates = type === '8-shifts'
+      ? [
+          { name: 'Q1A', period: 1, shift: 'A' as const },
+          { name: 'Q1B', period: 1, shift: 'B' as const },
+          { name: 'Q2A', period: 2, shift: 'A' as const },
+          { name: 'Q2B', period: 2, shift: 'B' as const },
+          { name: 'Q3A', period: 3, shift: 'A' as const },
+          { name: 'Q3B', period: 3, shift: 'B' as const },
+          { name: 'Q4A', period: 4, shift: 'A' as const },
+          { name: 'Q4B', period: 4, shift: 'B' as const },
+        ]
+      : [
+          { name: 'Q1', period: 1, shift: 'full' as const },
+          { name: 'Q2', period: 2, shift: 'full' as const },
+          { name: 'Q3', period: 3, shift: 'full' as const },
+          { name: 'Q4', period: 4, shift: 'full' as const },
+        ];
+
+    const lineupsPayload = templates.map(t => ({
+      name: t.name,
+      period: t.period,
+      shift: t.shift,
+      formationId: formation.id,
+      positions: formation.positions.map(p => ({
+        id: crypto.randomUUID(),
+        label: p.label,
+        x: p.x,
+        y: p.y,
+        playerId: null,
+      })),
+    }));
+
+    const data = await api.post<{ game: Game }>(`/games/${gameId}/scaffold-lineups`, { lineups: lineupsPayload });
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
   }
 
   async function copyLineupInGame(gameId: string, lineupId: string) {
@@ -221,6 +268,69 @@ export const useAppStore = defineStore('app', () => {
     if (lineup) lineup.name = name;
   }
 
+  async function updateLineupDetails(gameId: string, lineupId: string, details: { name?: string; period?: number; shift?: 'A' | 'B' | 'full' }) {
+    const data = await api.put<{ game: Game }>(`/games/${gameId}/lineups/${lineupId}`, details);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
+  // --- Live Game Actions ---
+  async function updateGameLiveStatus(
+    gameId: string,
+    status?: GameStatus,
+    scoreUs?: number,
+    scoreThem?: number,
+    gameConfig?: GameConfig
+  ) {
+    const data = await api.put<{ game: Game }>(`/games/${gameId}/live-status`, {
+      status,
+      scoreUs,
+      scoreThem,
+      gameConfig,
+    });
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
+  async function addGameEvent(gameId: string, eventData: {
+    type: GameEvent['type'];
+    minute?: number;
+    periodIndex?: number;
+    shift?: string;
+    periodTimeSeconds?: number;
+    playerId?: string | null;
+    assistPlayerId?: string | null;
+    notes?: string;
+  }) {
+    const data = await api.post<{ game: Game }>(`/games/${gameId}/events`, eventData);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
+  async function deleteGameEvent(gameId: string, eventId: string) {
+    const data = await api.delete<{ game: Game }>(`/games/${gameId}/events/${eventId}`);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
+  async function completeGame(gameId: string) {
+    const data = await api.post<{ game: Game }>(`/games/${gameId}/complete`);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
+  async function reopenGame(gameId: string) {
+    const data = await api.post<{ game: Game }>(`/games/${gameId}/reopen`);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
   // --- Formation Actions ---
   async function addCustomFormation(name: string, type: FormationType, positions: PositionDef[]) {
     const data = await api.post<{ formation: Formation }>('/formations', { name, type, positions });
@@ -252,6 +362,7 @@ export const useAppStore = defineStore('app', () => {
     updateTeamIcon,
     updateTeamName,
     updateTeamColor,
+    updateTeamQuarterMinutes,
     deleteTeam,
     appendPlayersToTeam,
     removePlayerFromTeam,
@@ -260,12 +371,19 @@ export const useAppStore = defineStore('app', () => {
     deleteGame,
     getGame,
     addLineupToGame,
+    scaffoldGameLineups,
     copyLineupInGame,
     copyLineupsFromGame,
     deleteLineup,
     assignPlayerToPosition,
     updatePositionLocation,
     updateLineupName,
+    updateLineupDetails,
+    updateGameLiveStatus,
+    addGameEvent,
+    deleteGameEvent,
+    completeGame,
+    reopenGame,
     customFormations,
     addCustomFormation,
     deleteCustomFormation,
