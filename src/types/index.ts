@@ -10,6 +10,7 @@ export interface Team {
   icon: string;
   matchType: FormationType;
   defaultFormationId: string;
+  quarterMinutes?: number;
   players: Player[];
 }
 
@@ -37,7 +38,33 @@ export interface Lineup {
   id: string;
   name: string;      
   formationId: string;
+  period?: number;
+  shift?: 'A' | 'B' | 'full';
   positions: LineupPosition[];
+}
+
+export type GameStatus = 'scheduled' | 'in_progress' | 'completed';
+
+export interface GameConfig {
+  periodDurationMinutes: number;
+  hasMidPeriodSubs: boolean;
+  subIntervalMinutes: number;
+  totalPeriods: number;
+  periodType: 'quarter' | 'half';
+}
+
+export interface GameEvent {
+  id: string;
+  gameId: string;
+  type: 'goal' | 'opponent_goal' | 'period_start' | 'period_end' | 'sub';
+  minute: number;
+  periodIndex: number;
+  shift?: string;
+  periodTimeSeconds?: number;
+  playerId?: string;
+  assistPlayerId?: string;
+  notes?: string;
+  createdAt?: string;
 }
 
 export interface Game {
@@ -45,5 +72,10 @@ export interface Game {
   name: string;
   date?: string;
   teamId: string;
+  status?: GameStatus;
+  scoreUs?: number;
+  scoreThem?: number;
+  gameConfig?: GameConfig;
+  events?: GameEvent[];
   lineups: Lineup[];
 }

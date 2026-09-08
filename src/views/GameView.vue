@@ -13,9 +13,15 @@
            <component v-else :is="(LucideIcons as any)[team.icon]" class="w-10 h-10 text-white"/>
         </div>
         <div>
-          <h2 class="text-lg sm:text-2xl font-black text-white flex items-center tracking-tight leading-tight">
-            {{ game.name }} 
-            <span v-if="game.date" class="text-white/80 font-bold text-[9px] sm:text-xs ml-2 sm:ml-3 bg-black/20 px-1.5 sm:px-2 py-0.5 rounded-none border border-white/10 uppercase tracking-widest whitespace-nowrap">{{ formatDate(game.date) }}</span>
+          <h2 class="text-lg sm:text-2xl font-black text-white flex items-center tracking-tight leading-tight flex-wrap gap-2">
+            <span>{{ game.name }}</span>
+            <span v-if="game.date" class="text-white/80 font-bold text-[9px] sm:text-xs bg-black/20 px-1.5 sm:px-2 py-0.5 rounded-none border border-white/10 uppercase tracking-widest whitespace-nowrap">{{ formatDate(game.date) }}</span>
+            <span v-if="game.status === 'in_progress'" class="bg-red-500 text-white text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-none tracking-widest animate-pulse flex items-center gap-1 shadow-sm">
+              <span class="w-1.5 h-1.5 rounded-full bg-white"></span> LIVE {{ game.scoreUs }} - {{ game.scoreThem }}
+            </span>
+            <span v-else-if="game.status === 'completed'" class="bg-gray-900/90 text-white text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-none tracking-widest flex items-center gap-1 shadow-sm">
+              FINAL {{ game.scoreUs }} - {{ game.scoreThem }}
+            </span>
           </h2>
           <p class="text-[10px] sm:text-sm font-bold text-white/80 mt-0.5 sm:mt-1 capitalize tracking-wide flex items-center">
              <img v-if="isCustomIcon(team.icon)" :src="team.icon" class="w-2.5 h-2.5 mr-1 sm:hidden object-contain" />
@@ -23,8 +29,11 @@
           </p>
         </div>
       </div>
-      <div class="flex space-x-2 w-full md:w-auto">
-        <router-link to="/" class="flex flex-1 md:flex-none items-center justify-center bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 border border-white/20 rounded-none transition shadow-sm backdrop-blur-sm" title="Back to Dashboard">
+      <div class="flex space-x-2 w-full md:w-auto items-center">
+        <router-link :to="`/game/${game.id}/live`" class="flex-1 md:flex-none flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white px-3.5 py-1.5 rounded-none font-black text-xs sm:text-sm uppercase tracking-wider transition shadow-sm" title="Launch Live Match Mode">
+          <Play class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 fill-current"/> Live Match
+        </router-link>
+        <router-link to="/" class="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 border border-white/20 rounded-none transition shadow-sm backdrop-blur-sm" title="Back to Dashboard">
           <ArrowLeft class="w-4 h-4 md:w-5 md:h-5"/>
            <span class="md:hidden ml-2 text-xs font-bold uppercase tracking-widest">Dashboard</span>
         </router-link>
@@ -51,19 +60,85 @@
                 </button>
             </div>
             <div :class="['bg-white p-3 border border-gray-200 shadow-sm rounded-none space-y-3 transition-all duration-300', showMobileControls ? 'block' : 'hidden xl:block']">
+                <!-- Quick Scaffold Row (shown if no lineups yet) -->
+                <div v-if="game.lineups.length === 0" class="bg-blue-50/70 p-2.5 border border-blue-200 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black text-blue-900 uppercase tracking-wider flex items-center gap-1">
+                      <Zap class="w-3.5 h-3.5 text-blue-600 fill-current" /> Quick Match Setup
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    <button @click="scaffoldMatch('8-shifts')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-none font-bold text-[10px] uppercase tracking-wide shadow-sm transition">
+                      8 Shifts (Q1A - Q4B)
+                    </button>
+                    <button @click="scaffoldMatch('4-quarters')" class="bg-white hover:bg-gray-50 text-blue-700 border border-blue-300 px-2 py-1.5 rounded-none font-bold text-[10px] uppercase tracking-wide shadow-sm transition">
+                      4 Quarters (Q1 - Q4)
+                    </button>
+                  </div>
+                </div>
+
                 <!-- Create Lineup Row -->
                 <div class="flex flex-col gap-1.5">
                     <div class="flex items-center justify-between px-0.5">
-                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">New Lineup</label>
+                      <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">New Lineup</label>
                     </div>
-                    <div class="flex gap-1.5">
-                    <input v-model="newLineupName" placeholder="e.g. Q1" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs font-bold w-16 sm:w-20 shrink-0" />
-                    <select v-model="selectedFormationId" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs bg-white font-bold flex-1 min-w-0">
-                        <option v-for="f in availableFormations" :key="f.id" :value="f.id">{{ f.name }}</option>
-                    </select>
-                    <button @click="createLineup" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-none font-black disabled:opacity-50 transition text-[10px] uppercase tracking-wider shadow-sm" :disabled="!newLineupName.trim()">
-                        Add
-                    </button>
+
+                    <!-- Quick Preset Pills: Period & Shift -->
+                    <div class="space-y-1.5 bg-gray-50 p-2 border border-gray-200">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[9px] font-bold text-gray-400 uppercase w-8">Quarter:</span>
+                        <div class="flex gap-1 flex-1">
+                          <button
+                            v-for="p in [1, 2, 3, 4]"
+                            :key="p"
+                            type="button"
+                            @click="selectPeriodPreset(p)"
+                            :class="['flex-1 py-1 text-[11px] font-black border transition', selectedPeriod === p ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100']"
+                          >
+                            Q{{ p }}
+                          </button>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[9px] font-bold text-gray-400 uppercase w-8">Shift:</span>
+                        <div class="flex gap-1 flex-1">
+                          <button
+                            type="button"
+                            @click="selectShiftPreset('A')"
+                            :class="['flex-1 py-1 text-[10px] font-bold border transition', selectedShift === 'A' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100']"
+                          >
+                            A (Start)
+                          </button>
+                          <button
+                            type="button"
+                            @click="selectShiftPreset('B')"
+                            :class="['flex-1 py-1 text-[10px] font-bold border transition', selectedShift === 'B' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100']"
+                          >
+                            B (Mid)
+                          </button>
+                          <button
+                            type="button"
+                            @click="selectShiftPreset('full')"
+                            :class="['flex-1 py-1 text-[10px] font-bold border transition', selectedShift === 'full' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100']"
+                          >
+                            Full
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex gap-1.5 mt-1">
+                      <input
+                        v-model="newLineupName"
+                        placeholder="e.g. Q1, Q1A"
+                        class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs font-bold w-20 sm:w-24 shrink-0"
+                      />
+                      <select v-model="selectedFormationId" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs bg-white font-bold flex-1 min-w-0">
+                          <option v-for="f in availableFormations" :key="f.id" :value="f.id">{{ f.name }}</option>
+                      </select>
+                      <button @click="createLineup" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-none font-black disabled:opacity-50 transition text-[10px] uppercase tracking-wider shadow-sm shrink-0" :disabled="!newLineupName.trim()">
+                          Add
+                      </button>
                     </div>
                 </div>
 
@@ -245,9 +320,10 @@ import { useRoute } from 'vue-router';
 import { useAppStore } from '../stores/appState';
 import { FORMATIONS } from '../utils/formations';
 import { formatDate } from '../utils/date';
+import { parseLineupShift } from '../utils/lineupParser';
 import type { Player, Lineup } from '../types';
 import FieldView from '../components/FieldView.vue';
-import { Trash2, Copy, Printer, GripVertical, ArrowLeft, ChevronDown } from 'lucide-vue-next';
+import { Trash2, Copy, Printer, GripVertical, ArrowLeft, ChevronDown, Play, Zap } from 'lucide-vue-next';
 import * as LucideIcons from 'lucide-vue-next';
 
 const route = useRoute();
@@ -257,11 +333,48 @@ const gameId = route.params.id as string;
 const game = computed(() => store.getGame(gameId));
 const team = computed(() => game.value ? store.getTeam(game.value.teamId) : undefined);
 
-const newLineupName = ref('');
+const selectedPeriod = ref(1);
+const selectedShift = ref<'A' | 'B' | 'full'>('A');
+const newLineupName = ref('Q1A');
 const selectedFormationId = ref('');
 const showMobileRoster = ref(false);
 const showMobileControls = ref(false);
 const selectedPlayerId = ref<string | null>(null);
+
+function selectPeriodPreset(p: number) {
+  selectedPeriod.value = p;
+  newLineupName.value = `Q${p}${selectedShift.value === 'full' ? '' : selectedShift.value}`;
+}
+
+function selectShiftPreset(s: 'A' | 'B' | 'full') {
+  selectedShift.value = s;
+  newLineupName.value = `Q${selectedPeriod.value}${s === 'full' ? '' : s}`;
+}
+
+function advanceNextLineupPreset() {
+  if (selectedShift.value === 'A') {
+    selectedShift.value = 'B';
+  } else if (selectedShift.value === 'B') {
+    selectedShift.value = 'A';
+    if (selectedPeriod.value < 4) {
+      selectedPeriod.value++;
+    }
+  } else if (selectedShift.value === 'full') {
+    if (selectedPeriod.value < 4) {
+      selectedPeriod.value++;
+    }
+  }
+  newLineupName.value = `Q${selectedPeriod.value}${selectedShift.value === 'full' ? '' : selectedShift.value}`;
+}
+
+async function scaffoldMatch(type: '8-shifts' | '4-quarters') {
+  if (!game.value || !team.value) return;
+  const formation = availableFormations.value.find(f => f.id === selectedFormationId.value)
+    || [...FORMATIONS, ...store.customFormations].find(f => f.id === selectedFormationId.value);
+  if (!formation) return;
+
+  await store.scaffoldGameLineups(game.value.id, type, formation);
+}
 
 function handlePlayerClick(playerId: string) {
   if (selectedPlayerId.value === playerId) {
@@ -305,13 +418,19 @@ watchEffect(() => {
   }
 });
 
-function createLineup() {
-  if (!game.value || !newLineupName.value.trim()) return;
+async function createLineup() {
+  if (!game.value) return;
+  const name = newLineupName.value.trim();
+  if (!name) return;
+
   const formation = availableFormations.value.find(f => f.id === selectedFormationId.value)
     || [...FORMATIONS, ...store.customFormations].find(f => f.id === selectedFormationId.value);
   if (formation) {
-    store.addLineupToGame(game.value.id, newLineupName.value.trim(), formation);
-    newLineupName.value = '';
+    const parsed = parseLineupShift({ name, positions: [] } as any);
+    const period = parsed.period ?? selectedPeriod.value;
+    const shift = parsed.shift ?? selectedShift.value;
+    await store.addLineupToGame(game.value.id, name, formation, period, shift);
+    advanceNextLineupPreset();
   }
 }
 

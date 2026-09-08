@@ -17,6 +17,7 @@ function getTeamWithPlayers(teamId, userId) {
     icon: team.icon,
     matchType: team.match_type,
     defaultFormationId: team.default_formation_id,
+    quarterMinutes: team.quarter_minutes ?? 10,
     players: players.map(p => ({ id: p.id, name: p.name })),
   };
 }
@@ -34,6 +35,7 @@ router.get('/', (req, res) => {
       icon: team.icon,
       matchType: team.match_type,
       defaultFormationId: team.default_formation_id,
+      quarterMinutes: team.quarter_minutes ?? 10,
       players: players.map(p => ({ id: p.id, name: p.name })),
     };
   });
@@ -43,14 +45,15 @@ router.get('/', (req, res) => {
 
 // POST /api/teams — create team
 router.post('/', (req, res) => {
-  const { name, color, icon, matchType, defaultFormationId } = req.body;
+  const { name, color, icon, matchType, defaultFormationId, quarterMinutes } = req.body;
   if (!name || !color || !icon || !matchType || !defaultFormationId) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
+  const qMin = Number(quarterMinutes) > 0 ? Math.round(Number(quarterMinutes)) : 10;
   const id = crypto.randomUUID();
-  db.prepare('INSERT INTO teams (id, user_id, name, color, icon, match_type, default_formation_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
-    .run(id, req.user.id, name, color, icon, matchType, defaultFormationId);
+  db.prepare('INSERT INTO teams (id, user_id, name, color, icon, match_type, default_formation_id, quarter_minutes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(id, req.user.id, name, color, icon, matchType, defaultFormationId, qMin);
 
   const team = getTeamWithPlayers(id, req.user.id);
   res.status(201).json({ team });
@@ -61,10 +64,14 @@ router.put('/:id', (req, res) => {
   const team = db.prepare('SELECT * FROM teams WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
   if (!team) return res.status(404).json({ error: 'Team not found' });
 
-  const { name, color, icon } = req.body;
+  const { name, color, icon, quarterMinutes } = req.body;
   if (name !== undefined) db.prepare('UPDATE teams SET name = ? WHERE id = ?').run(name, team.id);
   if (color !== undefined) db.prepare('UPDATE teams SET color = ? WHERE id = ?').run(color, team.id);
   if (icon !== undefined) db.prepare('UPDATE teams SET icon = ? WHERE id = ?').run(icon, team.id);
+  if (quarterMinutes !== undefined) {
+    const qMin = Math.max(1, Math.round(Number(quarterMinutes)) || 10);
+    db.prepare('UPDATE teams SET quarter_minutes = ? WHERE id = ?').run(qMin, team.id);
+  }
 
   const updated = getTeamWithPlayers(team.id, req.user.id);
   res.json({ team: updated });

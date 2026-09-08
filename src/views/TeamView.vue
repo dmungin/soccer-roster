@@ -14,7 +14,7 @@
                <component v-else :is="(LucideIcons as any)[team.icon]" class="w-5 h-5 mr-2 text-white sm:hidden"/>
                {{ team.name }} Roster
              </h2>
-             <p class="text-sm text-white/80 mt-1 uppercase font-bold tracking-widest">{{ team.players.length }} players total</p>
+             <p class="text-sm text-white/80 mt-1 uppercase font-bold tracking-widest">{{ team.players.length }} players total • {{ team.matchType }} • {{ team.quarterMinutes ?? 10 }}m quarters</p>
            </div>
         </div>
         <router-link to="/" class="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white px-3 py-2 border border-white/20 rounded-none transition shadow-sm backdrop-blur-sm font-medium text-sm">
@@ -56,6 +56,38 @@
                  <div v-if="showCustomUrl || isCustomIcon(team.icon)" class="flex gap-2">
                    <input v-model="customUrlInput" placeholder="Image URL (http://...)" class="border border-gray-300 rounded-none px-2 py-1.5 outline-none focus:border-blue-500 text-xs flex-1" />
                    <button @click="saveCustomIcon" :disabled="!customUrlInput.trim()" class="bg-blue-600 disabled:opacity-50 text-white px-2 py-1 rounded-none text-[10px] font-bold shadow-sm uppercase">Save</button>
+                 </div>
+               </div>
+             </div>
+
+             <div>
+               <div class="flex justify-between items-center mb-1.5">
+                 <label class="text-[11px] font-bold uppercase text-gray-500">Quarter Length</label>
+                 <span class="text-[10px] font-bold text-gray-400">Sub alert at {{ Math.round((team.quarterMinutes ?? 10) / 2) }}:00</span>
+               </div>
+               <div class="flex items-center gap-2">
+                 <input
+                   type="number"
+                   min="1"
+                   max="60"
+                   :value="team.quarterMinutes ?? 10"
+                   @change="updateQuarterMinutes(Number(($event.target as HTMLInputElement).value))"
+                   class="border border-gray-300 rounded-none px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400 w-20 text-sm font-bold"
+                 />
+                 <span class="text-xs font-bold text-gray-500">mins / quarter</span>
+                 <div class="flex gap-1 ml-auto">
+                   <button
+                     v-for="preset in [8, 10, 12, 15]"
+                     :key="preset"
+                     type="button"
+                     @click="updateQuarterMinutes(preset)"
+                     :class="[
+                       'px-2 py-1 text-[10px] font-bold border transition',
+                       (team.quarterMinutes ?? 10) === preset ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                     ]"
+                   >
+                     {{ preset }}m
+                   </button>
                  </div>
                </div>
              </div>
@@ -156,6 +188,13 @@ function updateName(name: string) {
 function updateColor(color: string) {
   if (teamId) {
     store.updateTeamColor(teamId, color);
+  }
+}
+
+function updateQuarterMinutes(mins: number) {
+  if (teamId) {
+    const val = Math.max(1, Math.round(mins) || 10);
+    store.updateTeamQuarterMinutes(teamId, val);
   }
 }
 

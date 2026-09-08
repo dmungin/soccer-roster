@@ -59,6 +59,38 @@
                </select>
              </div>
           </div>
+
+          <div class="flex flex-col">
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-[11px] font-bold uppercase text-gray-500">Quarter Length</label>
+              <span class="text-[10px] font-bold text-gray-400">Sub alert at {{ Math.round((newTeamQuarterMinutes || 10) / 2) }}m</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model.number="newTeamQuarterMinutes"
+                type="number"
+                min="1"
+                max="60"
+                placeholder="10"
+                class="border border-gray-300 rounded-none px-2.5 py-1.5 text-sm bg-white outline-none focus:border-blue-500 w-20 font-bold"
+              />
+              <span class="text-xs font-bold text-gray-500">mins / quarter</span>
+              <div class="flex gap-1 ml-auto">
+                <button
+                  v-for="preset in [8, 10, 12, 15]"
+                  :key="preset"
+                  type="button"
+                  @click="newTeamQuarterMinutes = preset"
+                  :class="[
+                    'px-2 py-1 text-[10px] font-bold border transition',
+                    newTeamQuarterMinutes === preset ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  ]"
+                >
+                  {{ preset }}m
+                </button>
+              </div>
+            </div>
+          </div>
           
           <button @click="createTeam" :disabled="!newTeamName.trim()" class="bg-blue-600 w-full text-white px-4 py-2 mt-2 rounded-none font-bold hover:bg-blue-700 disabled:opacity-50 transition shadow-sm text-sm">Create Team</button>
         </div>
@@ -73,7 +105,7 @@
               </div>
               <div class="flex flex-col">
                 <span class="font-bold text-gray-800 text-lg leading-tight">{{ team.name }}</span>
-                <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wide">{{ team.players.length }} players • {{ team.matchType }}</span>
+                <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wide">{{ team.players.length }} players • {{ team.matchType }} • {{ team.quarterMinutes ?? 10 }}m quarters</span>
               </div>
             </div>
             <div class="flex items-center space-x-2">
@@ -115,9 +147,22 @@
           <li v-if="filteredGames.length === 0" class="text-gray-400 text-sm py-8 text-center italic border-2 border-dashed rounded-none bg-gray-50">
             {{ selectedFilterTeamId ? 'No games scheduled for this team.' : 'Select a team above or view all games below.' }}
           </li>
-          <li v-for="game in filteredGames" :key="game.id" :class="['flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border rounded-none transition duration-150 shadow-sm space-y-3 sm:space-y-0', isPastGame(game.date) ? 'bg-gray-100 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-gray-50']">
+          <li v-for="game in filteredGames" :key="game.id" :class="['flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border rounded-none transition duration-150 shadow-sm space-y-3 sm:space-y-0', isPastGame(game.date) && game.status !== 'in_progress' ? 'bg-gray-100 opacity-80' : 'bg-white hover:bg-gray-50']">
             <div>
-              <div class="font-bold text-gray-800 text-lg leading-tight">{{ game.name }}</div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-gray-800 text-lg leading-tight">{{ game.name }}</span>
+                
+                <!-- Live or Final Badge -->
+                <span v-if="game.status === 'in_progress'" class="bg-red-500 text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-widest animate-pulse flex items-center gap-1 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                  LIVE {{ game.scoreUs ?? 0 }} - {{ game.scoreThem ?? 0 }}
+                </span>
+                <button v-else-if="game.status === 'completed'" @click="openGameSummary(game)" :class="['text-[10px] font-black uppercase px-2 py-0.5 tracking-wider border shadow-2xs hover:opacity-90 transition flex items-center gap-1', getScoreBadgeClass(game)]" title="View Match Summary">
+                  <span>FINAL {{ game.scoreUs ?? 0 }} - {{ game.scoreThem ?? 0 }}</span>
+                  <span class="underline ml-0.5">Recap</span>
+                </button>
+              </div>
+
               <div v-if="game.date" class="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-0.5">{{ formatDate(game.date) }}</div>
                <div class="text-[11px] font-medium text-gray-500 uppercase tracking-wide mt-1 flex items-center">
                   <template v-if="!selectedFilterTeamId">
@@ -128,8 +173,34 @@
                   {{ game.lineups.length }} lineups
                </div>
             </div>
+
             <div class="flex items-center space-x-2 w-full sm:w-auto">
-              <router-link :to="`/game/${game.id}`" class="bg-blue-50 flex-1 sm:flex-none text-center text-blue-700 border border-blue-200 hover:bg-blue-100 font-bold px-4 py-2 rounded-none text-sm transition shadow-sm">Open Game</router-link>
+              <!-- Live Match / Resume Button -->
+              <router-link
+                v-if="game.status === 'in_progress'"
+                :to="`/game/${game.id}/live`"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-3.5 py-2 rounded-none text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1"
+              >
+                <Play class="w-3.5 h-3.5 fill-current" /> Resume Live
+              </router-link>
+              <router-link
+                v-else-if="game.status !== 'completed'"
+                :to="`/game/${game.id}/live`"
+                class="bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 font-bold px-3 py-2 rounded-none text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1"
+                title="Start Live Match"
+              >
+                <Play class="w-3 h-3 fill-current" /> Live
+              </router-link>
+              <button
+                v-else
+                @click="openGameSummary(game)"
+                class="bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200 font-bold px-3 py-2 rounded-none text-xs uppercase tracking-wider transition shadow-sm"
+              >
+                Recap
+              </button>
+
+              <!-- Open Game Button -->
+              <router-link :to="`/game/${game.id}`" class="bg-blue-50 flex-1 sm:flex-none text-center text-blue-700 border border-blue-200 hover:bg-blue-100 font-bold px-3.5 py-2 rounded-none text-xs uppercase tracking-wider transition shadow-sm">Open Game</router-link>
               <button @click="store.deleteGame(game.id)" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-none transition" title="Delete Game"><Trash2 class="w-4 h-4"/></button>
             </div>
           </li>
@@ -196,20 +267,51 @@
         </div>
       </div>
     </div>
+
+    <!-- Match Summary Modal -->
+    <GameSummaryModal
+      :is-open="isSummaryModalOpen"
+      :game="selectedSummaryGame || undefined"
+      :team="selectedSummaryGame ? store.getTeam(selectedSummaryGame.teamId) : undefined"
+      @close="isSummaryModalOpen = false"
+      @reopen="handleReopenFromHome"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useAppStore } from '../stores/appState';
-import { Users, Calendar, Trash2 } from 'lucide-vue-next';
+import { Users, Calendar, Trash2, Play } from 'lucide-vue-next';
 import * as LucideIcons from 'lucide-vue-next';
 import { FORMATIONS } from '../utils/formations';
 import { formatDate } from '../utils/date';
-import type { FormationType, Formation } from '../types';
-import { computed, watch } from 'vue';
+import type { FormationType, Formation, Game } from '../types';
+import GameSummaryModal from '../components/GameSummaryModal.vue';
 
 const store = useAppStore();
+
+const isSummaryModalOpen = ref(false);
+const selectedSummaryGame = ref<Game | null>(null);
+
+function openGameSummary(game: Game) {
+  selectedSummaryGame.value = game;
+  isSummaryModalOpen.value = true;
+}
+
+async function handleReopenFromHome() {
+  if (!selectedSummaryGame.value) return;
+  await store.reopenGame(selectedSummaryGame.value.id);
+  isSummaryModalOpen.value = false;
+}
+
+function getScoreBadgeClass(game: Game) {
+  const us = game.scoreUs ?? 0;
+  const them = game.scoreThem ?? 0;
+  if (us > them) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+  if (us < them) return 'bg-rose-100 text-rose-800 border-rose-300';
+  return 'bg-amber-100 text-amber-800 border-amber-300';
+}
 
 const newTeamName = ref('');
 const newGameName = ref('');
@@ -232,6 +334,7 @@ const selectedIcon = ref(icons[0]);
 const customIconUrl = ref('');
 const selectedMatchType = ref<FormationType>('11v11');
 const selectedDefaultFormationId = ref('11v11-4-3-3');
+const newTeamQuarterMinutes = ref(10);
 const previewNode = ref<Formation | null>(null);
 
 const filteredGames = computed(() => {
@@ -280,6 +383,9 @@ function onMatchTypeChange() {
   if (forms.length > 0) {
     selectedDefaultFormationId.value = forms[0].id;
   }
+  if (selectedMatchType.value === '7v7') newTeamQuarterMinutes.value = 10;
+  else if (selectedMatchType.value === '9v9') newTeamQuarterMinutes.value = 12;
+  else if (selectedMatchType.value === '11v11') newTeamQuarterMinutes.value = 15;
 }
 
 async function createTeam() {
@@ -288,13 +394,21 @@ async function createTeam() {
       ? customIconUrl.value.trim() 
       : (selectedIcon.value === 'custom' ? 'Shield' : selectedIcon.value);
 
-    await store.addTeam(newTeamName.value.trim(), selectedColor.value, finalIcon, selectedMatchType.value, selectedDefaultFormationId.value);
+    await store.addTeam(
+      newTeamName.value.trim(),
+      selectedColor.value,
+      finalIcon,
+      selectedMatchType.value,
+      selectedDefaultFormationId.value,
+      newTeamQuarterMinutes.value || 10
+    );
     
     newTeamName.value = '';
     customIconUrl.value = '';
     selectedColor.value = colors[0];
     selectedIcon.value = icons[0];
     selectedMatchType.value = '11v11';
+    newTeamQuarterMinutes.value = 10;
     onMatchTypeChange();
   }
 }
