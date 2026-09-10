@@ -94,7 +94,7 @@
                     <!-- Quick Preset Pills: Period & Shift -->
                     <div class="space-y-1.5 bg-gray-50 p-2 border border-gray-200">
                       <div class="flex items-center gap-1.5">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase w-8">Quarter:</span>
+                        <span class="text-[9px] font-bold text-gray-400 uppercase w-14 shrink-0">Quarter:</span>
                         <div class="flex gap-1 flex-1">
                           <button
                             v-for="p in [1, 2, 3, 4]"
@@ -108,7 +108,7 @@
                         </div>
                       </div>
                       <div class="flex items-center gap-1.5">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase w-8">Shift:</span>
+                        <span class="text-[9px] font-bold text-gray-400 uppercase w-14 shrink-0">Shift:</span>
                         <div class="flex gap-1 flex-1">
                           <button
                             type="button"

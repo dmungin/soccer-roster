@@ -151,7 +151,9 @@ test.describe('Live Game Feature', () => {
     await page.waitForURL(/\/team\//);
     await expect(page.getByText(/12m quarters/i)).toBeVisible();
 
-    await page.getByRole('button', { name: '8m' }).click();
+    const qInput = page.locator('input[type="number"]');
+    await qInput.fill('8');
+    await qInput.dispatchEvent('change');
     await expect(page.getByText(/8m quarters/i)).toBeVisible();
     await expect(page.getByText(/Sub alert at 4:00/i)).toBeVisible();
 
@@ -279,5 +281,85 @@ test.describe('Live Game Feature', () => {
     // Pause clock
     await page.getByRole('button', { name: /Pause Clock/i }).click();
     await expect(page.getByRole('button', { name: /Start Clock/i })).toBeVisible();
+  });
+
+  test('coaches can retroactively add missed events and edit existing events in live match', async ({ page }) => {
+    await loginOrSetup(page);
+
+    const teamSection = page.locator('section', { hasText: 'Teams' }).first();
+    const teamName = `EventEditFC-${Date.now()}`;
+    await teamSection.getByPlaceholder('Team Name...').fill(teamName);
+    await teamSection.getByRole('button', { name: 'Create Team' }).click();
+
+    const teamCard = teamSection.locator('li', { hasText: teamName }).first();
+    await teamCard.getByRole('link', { name: 'Roster' }).click();
+    await page.waitForURL(/\/team\//);
+
+    const playerInput = page.locator('textarea');
+    await playerInput.fill('StrikerSam\nMidfielderMax\nDefenderDan\nKeeperKen\nSubSue\nSubSal\nSubSid');
+    await page.getByRole('button', { name: 'Add to Team' }).click();
+    await expect(page.getByText('StrikerSam')).toBeVisible();
+
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const gamesSection = page.locator('section', { hasText: 'Scheduled Games' }).first();
+    const teamSelect = gamesSection.locator('select').first();
+    const teamVal = await teamSelect.locator('option', { hasText: teamName }).getAttribute('value');
+    if (teamVal) {
+      await teamSelect.selectOption(teamVal);
+    }
+
+    const gameName = `Edit Events Match ${Date.now()}`;
+    await gamesSection.getByPlaceholder('Game Name/Opponent').fill(gameName);
+    await gamesSection.getByRole('button', { name: 'Schedule Game' }).click();
+
+    const gameRow = gamesSection.locator('li', { hasText: gameName }).first();
+    await gameRow.getByRole('link', { name: 'Open Game' }).click();
+    await page.waitForURL(/\/game\//);
+
+    // Verify Quarter and Shift label layout
+    await expect(page.getByText('Quarter:')).toBeVisible();
+    await expect(page.getByText('Shift:')).toBeVisible();
+
+    await page.getByRole('button', { name: /8 Shifts/i }).click();
+    await page.getByRole('link', { name: /Live Match/i }).click();
+    await page.waitForURL(/\/game\/.*\/live/);
+
+    // 1. Add a missed goal retroactively via "+ Add Event"
+    await page.getByRole('button', { name: /Add Event/i }).click();
+    await expect(page.getByText(/Add Missed Event \/ Goal/i)).toBeVisible();
+
+    const eventModal = page.locator('div.fixed.inset-0', { hasText: 'Add Missed Event / Goal' });
+    // Set match minute to 3'
+    const minuteInput = eventModal.locator('input[type="number"]');
+    await minuteInput.fill('3');
+
+    // Select StrikerSam as scorer
+    const scorerSelect = eventModal.locator('select').first();
+    await scorerSelect.selectOption({ label: 'StrikerSam' });
+
+    // Save event
+    await eventModal.getByRole('button', { name: 'Add Event' }).click();
+
+    // Verify event is in feed with 3' and StrikerSam
+    await expect(page.getByText("3'").first()).toBeVisible();
+    await expect(page.getByText('⚽ Goal: StrikerSam')).toBeVisible();
+    await expect(page.getByText('1').first()).toBeVisible(); // Us score = 1
+
+    // 2. Edit the event using the pencil button
+    const editBtn = page.locator('button[title="Edit Event"]').first();
+    await editBtn.click();
+    await expect(page.getByText('Edit Match Event')).toBeVisible();
+
+    const editModal = page.locator('div.fixed.inset-0', { hasText: 'Edit Match Event' });
+    // Change minute to 5' and change scorer to MidfielderMax
+    await editModal.locator('input[type="number"]').fill('5');
+    await editModal.locator('select').first().selectOption({ label: 'MidfielderMax' });
+    await editModal.getByRole('button', { name: 'Save Changes' }).click();
+
+    // Verify updated event details in feed
+    await expect(page.getByText("5'").first()).toBeVisible();
+    await expect(page.getByText('⚽ Goal: MidfielderMax')).toBeVisible();
   });
 });
