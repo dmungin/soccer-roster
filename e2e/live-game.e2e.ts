@@ -217,4 +217,67 @@ test.describe('Live Game Feature', () => {
     await expect(resetGameCard.getByText(/LIVE \d+ - \d+/i)).not.toBeVisible();
     await expect(resetGameCard.getByText(/FINAL \d+ - \d+/i)).not.toBeVisible();
   });
+
+  test('game clock catches up elapsed wall time after screen lock/backgrounding without drift', async ({ page }) => {
+    await loginOrSetup(page);
+
+    // Create a team and game
+    const teamSection = page.locator('section', { hasText: 'Teams' }).first();
+    const teamName = `DriftCheckFC-${Date.now()}`;
+    await teamSection.getByPlaceholder('Team Name...').fill(teamName);
+    await teamSection.getByRole('button', { name: 'Create Team' }).click();
+
+    const teamCard = teamSection.locator('li', { hasText: teamName }).first();
+    await teamCard.getByRole('link', { name: 'Roster' }).click();
+    await page.waitForURL(/\/team\//);
+
+    const playerInput = page.locator('textarea');
+    await playerInput.fill('P1\nP2\nP3\nP4\nP5\nP6\nP7');
+    await page.getByRole('button', { name: 'Add to Team' }).click();
+    await expect(page.getByText('P1')).toBeVisible();
+
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const gamesSection = page.locator('section', { hasText: 'Scheduled Games' }).first();
+    const teamSelect = gamesSection.locator('select').first();
+    const teamVal = await teamSelect.locator('option', { hasText: teamName }).getAttribute('value');
+    if (teamVal) {
+      await teamSelect.selectOption(teamVal);
+    }
+
+    const gameName = `Drift Test Match ${Date.now()}`;
+    await gamesSection.getByPlaceholder('Game Name/Opponent').fill(gameName);
+    await gamesSection.getByRole('button', { name: 'Schedule Game' }).click();
+
+    const gameRow = gamesSection.locator('li', { hasText: gameName }).first();
+    await gameRow.getByRole('link', { name: 'Open Game' }).click();
+    await page.waitForURL(/\/game\//);
+
+    await page.getByRole('button', { name: /8 Shifts/i }).click();
+    await page.getByRole('link', { name: /Live Match/i }).click();
+    await page.waitForURL(/\/game\/.*\/live/);
+
+    // Initial clock at 10:00
+    await expect(page.getByText('10:00')).toBeVisible();
+
+    // Start clock
+    await page.getByRole('button', { name: /Start Clock/i }).click();
+    await expect(page.getByRole('button', { name: /Pause Clock/i })).toBeVisible();
+
+    // Fast-forward wall clock by 6 seconds and fire visibilitychange
+    await page.evaluate(() => {
+      const realNow = Date.now();
+      Date.now = () => realNow + 6000;
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    // Verify clock caught up: should now be 9:54 or less (not 9:59 or 10:00)
+    await expect(page.getByText(/9:5[0-4]/)).toBeVisible();
+
+    // Pause clock
+    await page.getByRole('button', { name: /Pause Clock/i }).click();
+    await expect(page.getByRole('button', { name: /Start Clock/i })).toBeVisible();
+  });
 });
