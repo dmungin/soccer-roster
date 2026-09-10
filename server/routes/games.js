@@ -349,19 +349,58 @@ router.post('/:id/events', (req, res) => {
       notes || null
     );
 
-    if (type === 'goal') {
-      db.prepare("UPDATE games SET score_us = score_us + 1, status = CASE WHEN status = 'scheduled' THEN 'in_progress' ELSE status END WHERE id = ?").run(game.id);
-    } else if (type === 'opponent_goal') {
-      db.prepare("UPDATE games SET score_them = score_them + 1, status = CASE WHEN status = 'scheduled' THEN 'in_progress' ELSE status END WHERE id = ?").run(game.id);
-    } else if (type === 'period_start') {
-      db.prepare("UPDATE games SET status = 'in_progress' WHERE id = ? AND status = 'scheduled'").run(game.id);
-    }
+    const goalsUs = db.prepare("SELECT COUNT(*) as count FROM game_events WHERE game_id = ? AND type = 'goal'").get(game.id).count;
+    const goalsThem = db.prepare("SELECT COUNT(*) as count FROM game_events WHERE game_id = ? AND type = 'opponent_goal'").get(game.id).count;
+    db.prepare("UPDATE games SET score_us = ?, score_them = ?, status = CASE WHEN status = 'scheduled' THEN 'in_progress' ELSE status END WHERE id = ?").run(goalsUs, goalsThem, game.id);
   });
 
   eventTransaction();
 
   const updated = getFullGame(game.id, req.user.id);
   res.status(201).json({ game: updated });
+});
+
+// PUT /api/games/:id/events/:eventId — update an event (minute, period, player, assist, notes, type)
+router.put('/:id/events/:eventId', (req, res) => {
+  const game = db.prepare('SELECT * FROM games WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (!game) return res.status(404).json({ error: 'Game not found' });
+
+  const event = db.prepare('SELECT * FROM game_events WHERE id = ? AND game_id = ?').get(req.params.eventId, game.id);
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+
+  const { type, minute, periodIndex, shift, playerId, assistPlayerId, notes } = req.body;
+
+  const updateTransaction = db.transaction(() => {
+    db.prepare(`
+      UPDATE game_events
+      SET type = COALESCE(?, type),
+          minute = COALESCE(?, minute),
+          period_index = COALESCE(?, period_index),
+          shift = ?,
+          player_id = ?,
+          assist_player_id = ?,
+          notes = ?
+      WHERE id = ?
+    `).run(
+      type || null,
+      minute !== undefined ? minute : null,
+      periodIndex !== undefined ? periodIndex : null,
+      shift !== undefined ? shift : event.shift,
+      playerId !== undefined ? (playerId || null) : event.player_id,
+      assistPlayerId !== undefined ? (assistPlayerId || null) : event.assist_player_id,
+      notes !== undefined ? notes : event.notes,
+      event.id
+    );
+
+    const goalsUs = db.prepare("SELECT COUNT(*) as count FROM game_events WHERE game_id = ? AND type = 'goal'").get(game.id).count;
+    const goalsThem = db.prepare("SELECT COUNT(*) as count FROM game_events WHERE game_id = ? AND type = 'opponent_goal'").get(game.id).count;
+    db.prepare('UPDATE games SET score_us = ?, score_them = ? WHERE id = ?').run(goalsUs, goalsThem, game.id);
+  });
+
+  updateTransaction();
+
+  const updated = getFullGame(game.id, req.user.id);
+  res.json({ game: updated });
 });
 
 // DELETE /api/games/:id/events/:eventId — remove an event
@@ -374,11 +413,9 @@ router.delete('/:id/events/:eventId', (req, res) => {
 
   const deleteTransaction = db.transaction(() => {
     db.prepare('DELETE FROM game_events WHERE id = ?').run(event.id);
-    if (event.type === 'goal') {
-      db.prepare('UPDATE games SET score_us = MAX(0, score_us - 1) WHERE id = ?').run(game.id);
-    } else if (event.type === 'opponent_goal') {
-      db.prepare('UPDATE games SET score_them = MAX(0, score_them - 1) WHERE id = ?').run(game.id);
-    }
+    const goalsUs = db.prepare("SELECT COUNT(*) as count FROM game_events WHERE game_id = ? AND type = 'goal'").get(game.id).count;
+    const goalsThem = db.prepare("SELECT COUNT(*) as count FROM game_events WHERE game_id = ? AND type = 'opponent_goal'").get(game.id).count;
+    db.prepare('UPDATE games SET score_us = ?, score_them = ? WHERE id = ?').run(goalsUs, goalsThem, game.id);
   });
 
   deleteTransaction();
@@ -403,6 +440,22 @@ router.post('/:id/reopen', (req, res) => {
   if (!game) return res.status(404).json({ error: 'Game not found' });
 
   db.prepare("UPDATE games SET status = 'in_progress' WHERE id = ?").run(game.id);
+  const updated = getFullGame(game.id, req.user.id);
+  res.json({ game: updated });
+});
+
+// POST /api/games/:id/reset — reset game scores, events, and set status back to scheduled
+router.post('/:id/reset', (req, res) => {
+  const game = db.prepare('SELECT * FROM games WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (!game) return res.status(404).json({ error: 'Game not found' });
+
+  const resetTransaction = db.transaction(() => {
+    db.prepare('DELETE FROM game_events WHERE game_id = ?').run(game.id);
+    db.prepare("UPDATE games SET status = 'scheduled', score_us = 0, score_them = 0 WHERE id = ?").run(game.id);
+  });
+
+  resetTransaction();
+
   const updated = getFullGame(game.id, req.user.id);
   res.json({ game: updated });
 });

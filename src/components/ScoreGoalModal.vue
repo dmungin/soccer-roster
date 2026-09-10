@@ -22,10 +22,16 @@
         <!-- Minute Selector -->
         <div class="flex items-center justify-between bg-gray-50 p-2.5 border border-gray-200">
           <label class="text-xs font-black uppercase text-gray-600 tracking-wider">Match Minute</label>
-          <div class="flex items-center gap-2">
-            <button @click="matchMinute = Math.max(1, matchMinute - 1)" class="w-7 h-7 bg-white border border-gray-300 font-bold hover:bg-gray-100">-</button>
-            <span class="font-black text-sm w-10 text-center">{{ matchMinute }}'</span>
-            <button @click="matchMinute++" class="w-7 h-7 bg-white border border-gray-300 font-bold hover:bg-gray-100">+</button>
+          <div class="flex items-center gap-1.5">
+            <button type="button" @click="matchMinute = Math.max(1, matchMinute - 1)" class="w-7 h-7 bg-white border border-gray-300 font-bold hover:bg-gray-100">-</button>
+            <input
+              type="number"
+              min="1"
+              max="120"
+              v-model.number="matchMinute"
+              class="w-14 bg-white border border-gray-300 px-1 py-1 text-center font-black text-sm outline-none focus:border-blue-500"
+            />
+            <button type="button" @click="matchMinute++" class="w-7 h-7 bg-white border border-gray-300 font-bold hover:bg-gray-100">+</button>
           </div>
         </div>
 

@@ -33,6 +33,14 @@
         <router-link :to="`/game/${game.id}/live`" class="flex-1 md:flex-none flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white px-3.5 py-1.5 rounded-none font-black text-xs sm:text-sm uppercase tracking-wider transition shadow-sm" title="Launch Live Match Mode">
           <Play class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 fill-current"/> Live Match
         </router-link>
+        <button
+          v-if="game.status !== 'scheduled'"
+          @click="confirmResetGame"
+          class="flex items-center justify-center bg-white/10 hover:bg-rose-600/80 text-white px-2.5 sm:px-3 py-1.5 border border-white/20 rounded-none font-bold text-xs uppercase tracking-wider transition shadow-sm"
+          title="Reset match back to scheduled"
+        >
+          <RotateCcw class="w-3.5 h-3.5 mr-1" /> Reset
+        </button>
         <router-link to="/" class="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 border border-white/20 rounded-none transition shadow-sm backdrop-blur-sm" title="Back to Dashboard">
           <ArrowLeft class="w-4 h-4 md:w-5 md:h-5"/>
            <span class="md:hidden ml-2 text-xs font-bold uppercase tracking-widest">Dashboard</span>
@@ -86,7 +94,7 @@
                     <!-- Quick Preset Pills: Period & Shift -->
                     <div class="space-y-1.5 bg-gray-50 p-2 border border-gray-200">
                       <div class="flex items-center gap-1.5">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase w-8">Quarter:</span>
+                        <span class="text-[9px] font-bold text-gray-400 uppercase w-14 shrink-0">Quarter:</span>
                         <div class="flex gap-1 flex-1">
                           <button
                             v-for="p in [1, 2, 3, 4]"
@@ -100,7 +108,7 @@
                         </div>
                       </div>
                       <div class="flex items-center gap-1.5">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase w-8">Shift:</span>
+                        <span class="text-[9px] font-bold text-gray-400 uppercase w-14 shrink-0">Shift:</span>
                         <div class="flex gap-1 flex-1">
                           <button
                             type="button"
@@ -323,7 +331,7 @@ import { formatDate } from '../utils/date';
 import { parseLineupShift } from '../utils/lineupParser';
 import type { Player, Lineup } from '../types';
 import FieldView from '../components/FieldView.vue';
-import { Trash2, Copy, Printer, GripVertical, ArrowLeft, ChevronDown, Play, Zap } from 'lucide-vue-next';
+import { Trash2, Copy, Printer, GripVertical, ArrowLeft, ChevronDown, Play, Zap, RotateCcw } from 'lucide-vue-next';
 import * as LucideIcons from 'lucide-vue-next';
 
 const route = useRoute();
@@ -431,6 +439,14 @@ async function createLineup() {
     const shift = parsed.shift ?? selectedShift.value;
     await store.addLineupToGame(game.value.id, name, formation, period, shift);
     advanceNextLineupPreset();
+  }
+}
+
+async function confirmResetGame() {
+  if (!game.value) return;
+  if (confirm('Reset this game back to scheduled? This will erase all logged scores, events, and reset the clock back to 0-0.')) {
+    await store.resetGame(game.value.id);
+    localStorage.removeItem(`first_touch_live_${game.value.id}`);
   }
 }
 

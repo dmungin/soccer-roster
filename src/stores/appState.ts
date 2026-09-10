@@ -310,6 +310,22 @@ export const useAppStore = defineStore('app', () => {
     return data.game;
   }
 
+  async function updateGameEvent(gameId: string, eventId: string, eventData: {
+    type?: GameEvent['type'];
+    minute?: number;
+    periodIndex?: number;
+    shift?: string;
+    periodTimeSeconds?: number;
+    playerId?: string | null;
+    assistPlayerId?: string | null;
+    notes?: string;
+  }) {
+    const data = await api.put<{ game: Game }>(`/games/${gameId}/events/${eventId}`, eventData);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
   async function deleteGameEvent(gameId: string, eventId: string) {
     const data = await api.delete<{ game: Game }>(`/games/${gameId}/events/${eventId}`);
     const idx = games.value.findIndex(g => g.id === gameId);
@@ -326,6 +342,13 @@ export const useAppStore = defineStore('app', () => {
 
   async function reopenGame(gameId: string) {
     const data = await api.post<{ game: Game }>(`/games/${gameId}/reopen`);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
+  async function resetGame(gameId: string) {
+    const data = await api.post<{ game: Game }>(`/games/${gameId}/reset`);
     const idx = games.value.findIndex(g => g.id === gameId);
     if (idx !== -1) games.value[idx] = data.game;
     return data.game;
@@ -381,9 +404,11 @@ export const useAppStore = defineStore('app', () => {
     updateLineupDetails,
     updateGameLiveStatus,
     addGameEvent,
+    updateGameEvent,
     deleteGameEvent,
     completeGame,
     reopenGame,
+    resetGame,
     customFormations,
     addCustomFormation,
     deleteCustomFormation,

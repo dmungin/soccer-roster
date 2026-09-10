@@ -75,20 +75,6 @@
                    class="border border-gray-300 rounded-none px-2.5 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400 w-20 text-sm font-bold"
                  />
                  <span class="text-xs font-bold text-gray-500">mins / quarter</span>
-                 <div class="flex gap-1 ml-auto">
-                   <button
-                     v-for="preset in [8, 10, 12, 15]"
-                     :key="preset"
-                     type="button"
-                     @click="updateQuarterMinutes(preset)"
-                     :class="[
-                       'px-2 py-1 text-[10px] font-bold border transition',
-                       (team.quarterMinutes ?? 10) === preset ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                     ]"
-                   >
-                     {{ preset }}m
-                   </button>
-                 </div>
                </div>
              </div>
           </div>

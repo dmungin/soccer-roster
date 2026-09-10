@@ -53,6 +53,13 @@
             <Plus class="w-4 h-4" /> <span class="hidden sm:inline">Goal</span> (Them)
           </button>
           <button
+            @click="confirmResetMatch"
+            class="hidden md:flex bg-white/10 hover:bg-rose-600/80 text-white font-bold px-2.5 sm:px-3 py-2 text-xs uppercase tracking-wider transition border border-white/20 items-center gap-1"
+            title="Reset match back to scheduled"
+          >
+            <RotateCcw class="w-3.5 h-3.5" /> Reset
+          </button>
+          <button
             v-if="game.status !== 'completed'"
             @click="confirmFinishMatch"
             class="hidden md:flex bg-gray-900/80 hover:bg-gray-900 text-white font-bold px-3 py-2 text-xs uppercase tracking-wider transition border border-white/20"
@@ -127,7 +134,16 @@
             <div class="text-2xl sm:text-3xl font-black tracking-widest text-emerald-400 leading-none">
               {{ formatTimer(quarterSecondsRemaining) }}
             </div>
-            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Quarter Time</span>
+            <div class="flex items-center justify-center gap-1.5 mt-0.5">
+              <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Quarter Time</span>
+              <span
+                v-if="isWakeLockActive"
+                class="inline-flex items-center gap-0.5 text-[8px] font-black uppercase text-amber-400 tracking-wider bg-amber-950/60 px-1 border border-amber-800/60"
+                title="Screen Wake Lock Active (Display will not sleep)"
+              >
+                <Sun class="w-2.5 h-2.5" /> Awake
+              </span>
+            </div>
           </div>
 
           <!-- Clock Toggle -->
@@ -315,6 +331,12 @@
             >
               Finalize Match
             </button>
+            <button
+              @click="confirmResetMatch"
+              class="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-300 font-bold py-2 px-3 text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw class="w-3.5 h-3.5" /> Reset Match
+            </button>
           </div>
         </div>
 
@@ -324,11 +346,20 @@
             <h3 class="text-xs font-black uppercase text-gray-500 tracking-wider flex items-center gap-1.5">
               <Clock class="w-3.5 h-3.5 text-gray-600" /> Match Event Log
             </h3>
-            <span class="text-[11px] font-bold text-gray-400">{{ game.events?.length || 0 }} events</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-gray-400">{{ game.events?.length || 0 }} events</span>
+              <button
+                @click="openAddEventModal"
+                class="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 transition flex items-center gap-0.5"
+                title="Add a missed event or goal"
+              >
+                <Plus class="w-3 h-3" /> Add Event
+              </button>
+            </div>
           </div>
 
           <div v-if="!game.events || game.events.length === 0" class="py-8 text-center text-gray-400 text-xs italic">
-            No events logged yet. Tap "+ Goal" to record goals.
+            No events logged yet. Tap "+ Goal" or "+ Add Event" to record events.
           </div>
           <div v-else class="space-y-2 max-h-96 overflow-y-auto pr-1">
             <div
@@ -346,14 +377,23 @@
                 </div>
               </div>
 
-              <!-- Delete/Undo Action -->
-              <button
-                @click="deleteEvent(ev.id)"
-                class="text-gray-300 hover:text-red-600 p-1 transition opacity-60 group-hover:opacity-100"
-                title="Undo / Delete Event"
-              >
-                <Trash2 class="w-3.5 h-3.5" />
-              </button>
+              <!-- Actions: Edit & Delete -->
+              <div class="flex items-center gap-1 shrink-0 ml-2">
+                <button
+                  @click="openEditEventModal(ev)"
+                  class="text-gray-400 hover:text-blue-600 p-1 transition opacity-70 group-hover:opacity-100"
+                  title="Edit Event"
+                >
+                  <Pencil class="w-3.5 h-3.5" />
+                </button>
+                <button
+                  @click="deleteEvent(ev.id)"
+                  class="text-gray-300 hover:text-red-600 p-1 transition opacity-60 group-hover:opacity-100"
+                  title="Undo / Delete Event"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -393,6 +433,19 @@
       @reopen="handleReopenMatch"
     />
 
+    <EditGameEventModal
+      v-if="team"
+      :is-open="isEditEventModalOpen"
+      :event="editingEvent"
+      :team-name="team.name"
+      :roster="team.players"
+      :default-minute="currentMatchMinute"
+      :default-period="currentPeriod"
+      @close="isEditEventModalOpen = false"
+      @save="handleSaveEvent"
+      @delete="handleDeleteEventFromModal"
+    />
+
   </div>
   <div v-else class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="bg-white p-8 border border-gray-200 shadow-sm max-w-sm text-center">
@@ -411,6 +464,7 @@ import FieldView from '../components/FieldView.vue';
 import SubDiffModal from '../components/SubDiffModal.vue';
 import ScoreGoalModal from '../components/ScoreGoalModal.vue';
 import GameSummaryModal from '../components/GameSummaryModal.vue';
+import EditGameEventModal from '../components/EditGameEventModal.vue';
 import { playWhistle, playSubChime } from '../utils/sound';
 import { parseLineupShift } from '../utils/lineupParser';
 import {
@@ -422,6 +476,9 @@ import {
   Clock,
   Trash2,
   Volume2,
+  RotateCcw,
+  Sun,
+  Pencil,
 } from 'lucide-vue-next';
 
 const route = useRoute();
@@ -465,6 +522,8 @@ const selectedPlayerId = ref<string | null>(null);
 const isSubModalOpen = ref(false);
 const isGoalModalOpen = ref(false);
 const isSummaryModalOpen = ref(false);
+const isEditEventModalOpen = ref(false);
+const editingEvent = ref<GameEvent | null>(null);
 
 let clockInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -517,28 +576,70 @@ const sortedEventsReversed = computed(() => {
   return [...game.value.events].sort((a, b) => b.minute - a.minute);
 });
 
-// --- Timer Engine ---
+// --- Screen Wake Lock (Keep phone screen awake during match) ---
+let wakeLockSentinel: any = null;
+const isWakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
+const isWakeLockActive = ref(false);
+
+async function requestWakeLock() {
+  if (!isWakeLockSupported) return;
+  try {
+    if (!wakeLockSentinel || wakeLockSentinel.released) {
+      wakeLockSentinel = await (navigator as any).wakeLock.request('screen');
+      isWakeLockActive.value = true;
+      wakeLockSentinel.addEventListener('release', () => {
+        isWakeLockActive.value = false;
+      });
+    }
+  } catch (err) {
+    console.warn('Screen Wake Lock request failed:', err);
+    isWakeLockActive.value = false;
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLockSentinel && !wakeLockSentinel.released) {
+    try {
+      await wakeLockSentinel.release();
+    } catch (err) {
+      console.warn('Screen Wake Lock release failed:', err);
+    }
+    wakeLockSentinel = null;
+  }
+  isWakeLockActive.value = false;
+}
+
+// --- Timer Engine (Wall-Clock Delta Timing) ---
+const lastTickTimestamp = ref<number | null>(null);
+
 function startClock() {
   if (isClockRunning.value) return;
   isClockRunning.value = true;
+  lastTickTimestamp.value = Date.now();
   saveLocalState();
+
+  // Keep phone screen awake
+  requestWakeLock();
 
   // If match was scheduled, mark in_progress
   if (game.value && game.value.status === 'scheduled') {
     store.updateGameLiveStatus(game.value.id, 'in_progress');
   }
 
+  if (clockInterval) clearInterval(clockInterval);
   clockInterval = setInterval(() => {
     tickClock();
-  }, 1000);
+  }, 500);
 }
 
 function pauseClock() {
   isClockRunning.value = false;
+  lastTickTimestamp.value = null;
   if (clockInterval) {
     clearInterval(clockInterval);
     clockInterval = null;
   }
+  releaseWakeLock();
   saveLocalState();
 }
 
@@ -552,36 +653,57 @@ function toggleClock() {
 
 function adjustClock(secondsDelta: number) {
   quarterSecondsRemaining.value = Math.max(0, quarterSecondsRemaining.value + secondsDelta);
+  if (isClockRunning.value) {
+    lastTickTimestamp.value = Date.now();
+  }
+  saveLocalState();
+}
+
+function applyElapsedSeconds(elapsedSeconds: number) {
+  if (elapsedSeconds <= 0) return;
+
+  // 1. Quarter timer tracking
+  if (quarterSecondsRemaining.value > 0) {
+    if (quarterSecondsRemaining.value <= elapsedSeconds) {
+      quarterSecondsRemaining.value = 0;
+      pauseClock();
+      playWhistle();
+      alert(`Quarter ${currentPeriod.value} has ended!`);
+      saveLocalState();
+      return;
+    } else {
+      quarterSecondsRemaining.value -= elapsedSeconds;
+    }
+  }
+
+  // 2. Sub timer tracking
+  if (subSecondsRemaining.value > 0) {
+    if (subSecondsRemaining.value <= elapsedSeconds) {
+      const leftover = elapsedSeconds - subSecondsRemaining.value;
+      subSecondsRemaining.value = 0;
+      isSubDue.value = true;
+      subOverdueSeconds.value = leftover;
+      playSubChime();
+    } else {
+      subSecondsRemaining.value -= elapsedSeconds;
+    }
+  } else if (isSubDue.value) {
+    subOverdueSeconds.value += elapsedSeconds;
+  }
+
   saveLocalState();
 }
 
 function tickClock() {
-  // Quarter timer continues uninterrupted!
-  if (quarterSecondsRemaining.value > 0) {
-    quarterSecondsRemaining.value--;
-  } else {
-    // Quarter ended!
-    pauseClock();
-    playWhistle();
-    alert(`Quarter ${currentPeriod.value} has ended!`);
-    return;
-  }
+  if (!isClockRunning.value || lastTickTimestamp.value === null) return;
 
-  // Sub timer tracking
-  if (subSecondsRemaining.value > 0) {
-    subSecondsRemaining.value--;
-    if (subSecondsRemaining.value === 0) {
-      // Sub window reached!
-      isSubDue.value = true;
-      subOverdueSeconds.value = 0;
-      playSubChime();
-    }
-  } else if (isSubDue.value) {
-    // Keep track of time elapsed waiting for stoppage
-    subOverdueSeconds.value++;
+  const now = Date.now();
+  const elapsedMs = now - lastTickTimestamp.value;
+  if (elapsedMs >= 1000) {
+    const elapsedSeconds = Math.floor(elapsedMs / 1000);
+    lastTickTimestamp.value += elapsedSeconds * 1000;
+    applyElapsedSeconds(elapsedSeconds);
   }
-
-  saveLocalState();
 }
 
 function formatTimer(totalSec: number): string {
@@ -597,6 +719,9 @@ function setPeriod(p: number) {
   subSecondsRemaining.value = Math.round(currentQuarterMinutes.value / 2) * 60;
   isSubDue.value = false;
   subOverdueSeconds.value = 0;
+  if (isClockRunning.value) {
+    lastTickTimestamp.value = Date.now();
+  }
 
   // Auto-switch to lineup corresponding to this period
   if (game.value) {
@@ -621,6 +746,8 @@ function changeQuarterMinutes(mins: number) {
     subSecondsRemaining.value = Math.round(validMins / 2) * 60;
     isSubDue.value = false;
     subOverdueSeconds.value = 0;
+  } else {
+    lastTickTimestamp.value = Date.now();
   }
   saveLocalState();
 }
@@ -737,6 +864,55 @@ async function deleteEvent(eventId: string) {
   }
 }
 
+function openAddEventModal() {
+  editingEvent.value = null;
+  isEditEventModalOpen.value = true;
+}
+
+function openEditEventModal(ev: GameEvent) {
+  editingEvent.value = ev;
+  isEditEventModalOpen.value = true;
+}
+
+async function handleSaveEvent(payload: {
+  id?: string;
+  type: GameEvent['type'];
+  minute: number;
+  periodIndex: number;
+  playerId: string | null;
+  assistPlayerId: string | null;
+  notes: string | null;
+}) {
+  isEditEventModalOpen.value = false;
+  if (!game.value) return;
+
+  if (payload.id) {
+    await store.updateGameEvent(game.value.id, payload.id, {
+      type: payload.type,
+      minute: payload.minute,
+      periodIndex: payload.periodIndex,
+      playerId: payload.playerId,
+      assistPlayerId: payload.assistPlayerId,
+      notes: payload.notes || undefined,
+    });
+  } else {
+    await store.addGameEvent(game.value.id, {
+      type: payload.type,
+      minute: payload.minute,
+      periodIndex: payload.periodIndex,
+      playerId: payload.playerId,
+      assistPlayerId: payload.assistPlayerId,
+      notes: payload.notes || undefined,
+    });
+  }
+}
+
+async function handleDeleteEventFromModal(eventId: string) {
+  isEditEventModalOpen.value = false;
+  if (!game.value) return;
+  await store.deleteGameEvent(game.value.id, eventId);
+}
+
 async function confirmFinishMatch() {
   if (!game.value) return;
   if (confirm(`Mark match as Final with score ${game.value.scoreUs} - ${game.value.scoreThem}?`)) {
@@ -750,6 +926,27 @@ async function handleReopenMatch() {
   if (!game.value) return;
   await store.reopenGame(game.value.id);
   isSummaryModalOpen.value = false;
+}
+
+async function confirmResetMatch() {
+  if (!game.value) return;
+  if (confirm('Reset this game back to scheduled? This will erase all logged scores, events, and reset the clock back to 0-0.')) {
+    pauseClock();
+    releaseWakeLock();
+    lastTickTimestamp.value = null;
+    await store.resetGame(game.value.id);
+    localStorage.removeItem(STORAGE_KEY);
+    currentPeriod.value = 1;
+    const qm = team.value?.quarterMinutes ?? DEFAULT_QUARTER_MINUTES;
+    currentQuarterMinutes.value = qm;
+    quarterSecondsRemaining.value = qm * 60;
+    subSecondsRemaining.value = Math.round(qm / 2) * 60;
+    isSubDue.value = false;
+    subOverdueSeconds.value = 0;
+    if (game.value.lineups && game.value.lineups.length > 0) {
+      activeLineupId.value = game.value.lineups[0].id;
+    }
+  }
 }
 
 function getPlayerName(playerId?: string) {
@@ -809,15 +1006,33 @@ function restoreLocalState() {
     const elapsed = state.isClockRunning ? Math.floor((Date.now() - state.timestamp) / 1000) : 0;
 
     quarterSecondsRemaining.value = Math.max(0, (state.quarterSecondsRemaining ?? baseQuarter * 60) - elapsed);
-    subSecondsRemaining.value = Math.max(0, (state.subSecondsRemaining ?? Math.round(baseQuarter / 2) * 60) - elapsed);
-    isSubDue.value = state.isSubDue || subSecondsRemaining.value === 0;
-    subOverdueSeconds.value = (state.subOverdueSeconds ?? 0) + (isSubDue.value ? elapsed : 0);
+
+    const prevSubSec = state.subSecondsRemaining ?? Math.round(baseQuarter / 2) * 60;
+    if (prevSubSec > elapsed) {
+      subSecondsRemaining.value = prevSubSec - elapsed;
+      isSubDue.value = false;
+      subOverdueSeconds.value = 0;
+    } else {
+      const leftover = elapsed - prevSubSec;
+      subSecondsRemaining.value = 0;
+      isSubDue.value = true;
+      subOverdueSeconds.value = (state.subOverdueSeconds ?? 0) + leftover;
+    }
 
     if (state.isClockRunning && quarterSecondsRemaining.value > 0) {
       startClock();
+    } else if (state.isClockRunning && quarterSecondsRemaining.value === 0) {
+      pauseClock();
     }
   } catch (err) {
     console.error('Failed to restore live game state:', err);
+  }
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible' && isClockRunning.value) {
+    tickClock();
+    requestWakeLock();
   }
 }
 
@@ -827,6 +1042,9 @@ onMounted(() => {
   }
   restoreLocalState();
 
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('focus', handleVisibilityChange);
+
   // If game is already completed, open summary modal by default
   if (game.value && game.value.status === 'completed') {
     isSummaryModalOpen.value = true;
@@ -834,6 +1052,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  window.removeEventListener('focus', handleVisibilityChange);
+  releaseWakeLock();
   pauseClock();
 });
 </script>
