@@ -53,6 +53,13 @@
             <Plus class="w-4 h-4" /> <span class="hidden sm:inline">Goal</span> (Them)
           </button>
           <button
+            @click="confirmResetMatch"
+            class="hidden md:flex bg-white/10 hover:bg-rose-600/80 text-white font-bold px-2.5 sm:px-3 py-2 text-xs uppercase tracking-wider transition border border-white/20 items-center gap-1"
+            title="Reset match back to scheduled"
+          >
+            <RotateCcw class="w-3.5 h-3.5" /> Reset
+          </button>
+          <button
             v-if="game.status !== 'completed'"
             @click="confirmFinishMatch"
             class="hidden md:flex bg-gray-900/80 hover:bg-gray-900 text-white font-bold px-3 py-2 text-xs uppercase tracking-wider transition border border-white/20"
@@ -315,6 +322,12 @@
             >
               Finalize Match
             </button>
+            <button
+              @click="confirmResetMatch"
+              class="bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-700 border border-gray-300 font-bold py-2 px-3 text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw class="w-3.5 h-3.5" /> Reset Match
+            </button>
           </div>
         </div>
 
@@ -422,6 +435,7 @@ import {
   Clock,
   Trash2,
   Volume2,
+  RotateCcw,
 } from 'lucide-vue-next';
 
 const route = useRoute();
@@ -750,6 +764,25 @@ async function handleReopenMatch() {
   if (!game.value) return;
   await store.reopenGame(game.value.id);
   isSummaryModalOpen.value = false;
+}
+
+async function confirmResetMatch() {
+  if (!game.value) return;
+  if (confirm('Reset this game back to scheduled? This will erase all logged scores, events, and reset the clock back to 0-0.')) {
+    pauseClock();
+    await store.resetGame(game.value.id);
+    localStorage.removeItem(STORAGE_KEY);
+    currentPeriod.value = 1;
+    const qm = team.value?.quarterMinutes ?? DEFAULT_QUARTER_MINUTES;
+    currentQuarterMinutes.value = qm;
+    quarterSecondsRemaining.value = qm * 60;
+    subSecondsRemaining.value = Math.round(qm / 2) * 60;
+    isSubDue.value = false;
+    subOverdueSeconds.value = 0;
+    if (game.value.lineups && game.value.lineups.length > 0) {
+      activeLineupId.value = game.value.lineups[0].id;
+    }
+  }
 }
 
 function getPlayerName(playerId?: string) {

@@ -331,6 +331,13 @@ export const useAppStore = defineStore('app', () => {
     return data.game;
   }
 
+  async function resetGame(gameId: string) {
+    const data = await api.post<{ game: Game }>(`/games/${gameId}/reset`);
+    const idx = games.value.findIndex(g => g.id === gameId);
+    if (idx !== -1) games.value[idx] = data.game;
+    return data.game;
+  }
+
   // --- Formation Actions ---
   async function addCustomFormation(name: string, type: FormationType, positions: PositionDef[]) {
     const data = await api.post<{ formation: Formation }>('/formations', { name, type, positions });
@@ -384,6 +391,7 @@ export const useAppStore = defineStore('app', () => {
     deleteGameEvent,
     completeGame,
     reopenGame,
+    resetGame,
     customFormations,
     addCustomFormation,
     deleteCustomFormation,

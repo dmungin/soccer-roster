@@ -407,4 +407,20 @@ router.post('/:id/reopen', (req, res) => {
   res.json({ game: updated });
 });
 
+// POST /api/games/:id/reset — reset game scores, events, and set status back to scheduled
+router.post('/:id/reset', (req, res) => {
+  const game = db.prepare('SELECT * FROM games WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (!game) return res.status(404).json({ error: 'Game not found' });
+
+  const resetTransaction = db.transaction(() => {
+    db.prepare('DELETE FROM game_events WHERE game_id = ?').run(game.id);
+    db.prepare("UPDATE games SET status = 'scheduled', score_us = 0, score_them = 0 WHERE id = ?").run(game.id);
+  });
+
+  resetTransaction();
+
+  const updated = getFullGame(game.id, req.user.id);
+  res.json({ game: updated });
+});
+
 export default router;

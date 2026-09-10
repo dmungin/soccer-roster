@@ -193,5 +193,28 @@ test.describe('Live Game Feature', () => {
     await expect(page.getByText('8:00')).toBeVisible();
     await expect(page.getByText('4:00')).toBeVisible();
     await expect(page.getByText('(8m)')).toBeVisible();
+
+    // 7. Test Reset Game flow
+    await page.getByRole('button', { name: /Goal \(Us\)/i }).click();
+    await page.locator('[data-testid="scorer-Player1"]').click();
+    await page.getByRole('button', { name: /Confirm Goal/i }).click();
+    await expect(page.getByText('1').first()).toBeVisible();
+
+    // Trigger reset match
+    page.on('dialog', dialog => dialog.accept());
+    const resetBtn = page.getByRole('button', { name: /Reset Match|Reset/i }).first();
+    await resetBtn.click();
+
+    // Verify scoreboard and timer reset
+    await expect(page.getByText('8:00')).toBeVisible();
+    await expect(page.getByText('4:00')).toBeVisible();
+    await expect(page.getByText('0 events')).toBeVisible();
+
+    // Return to dashboard and verify status is scheduled
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const resetGameCard = page.locator('section', { hasText: 'Scheduled Games' }).first().locator('li', { hasText: gameName }).first();
+    await expect(resetGameCard.getByText(/LIVE \d+ - \d+/i)).not.toBeVisible();
+    await expect(resetGameCard.getByText(/FINAL \d+ - \d+/i)).not.toBeVisible();
   });
 });
